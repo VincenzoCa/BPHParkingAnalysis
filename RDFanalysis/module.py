@@ -9,33 +9,30 @@ def print_time(where):
 
 #returns indices of triplets passing selections
 Cuts_code = '''
-ROOT::VecOps::RVec<unsigned int> Cuts(bool isE, 
-                                      unsigned int nTr,
-                                      ROOT::VecOps::RVec<float>& BpT, 
-                                      ROOT::VecOps::RVec<float>& cosAlpha, 
-                                      ROOT::VecOps::RVec<float>& svprob,
-                                      ROOT::VecOps::RVec<float>& Lxy,
-                                      ROOT::VecOps::RVec<float>& Lxy_unc,
-                                      ROOT::VecOps::RVec<float>& KpT,
-                                      ROOT::VecOps::RVec<float>& l1pT,
-                                      ROOT::VecOps::RVec<float>& l2pT,
-                                      ROOT::VecOps::RVec<float>& l1mvaId,
-                                      ROOT::VecOps::RVec<float>& l2mvaId,
-                                      ROOT::VecOps::RVec<bool>& l1Veto,
-                                      ROOT::VecOps::RVec<bool>& l2Veto){
+using namespace ROOT::VecOps;
+RVec<unsigned int> Cuts(unsigned int nTr,
+                        RVec<float>& BpT, 
+                        RVec<float>& cosAlpha, 
+                        RVec<float>& svprob,
+                        RVec<float>& Lxy,
+                        RVec<float>& Lxy_unc,
+                        RVec<float>& K_DCASig,
+                        RVec<float>& KpT,
+                        RVec<float>& l1pT,
+                        RVec<float>& l2pT,
+                        RVec<float>& l1mvaId,
+                        RVec<float>& l2mvaId,
+                        RVec<bool>& l1Veto,
+                        RVec<bool>& l2Veto){
 
-    ROOT::VecOps::RVec<unsigned int> out_idx;
-
-    float pT1, pT2;
-    pT1 = isE ? 1.5 : 2.;
-    pT2 = isE ? 0.5 : 2;
+    RVec<unsigned int> out_idx;
 
     for (auto i=0; i<nTr; ++i){
             if( BpT[i] < 3. || cosAlpha[i] < 0.999 || svprob[i] < 0.1 ||
-                Lxy[i]/sqrt(Lxy_unc[i]) < 6.0 || KpT[i] < 3. || 
-                l1pT[i] < pT1 || l2pT[i] < pT2) continue;
-            if( isE && l1mvaId[i] > 3.96 && l2mvaId[i] > 3.96 && 
-                l1Veto[i] && l2Veto[i] ) out_idx.push_back(i);
+                Lxy[i]/sqrt(Lxy_unc[i]) < 6.0 || K_DCASig[i] < 2. || KpT[i] < 3.) continue;
+            if( l1mvaId[i] > 3.94 && l2mvaId[i] > 3.94 && 
+                l1Veto[i] && l2Veto[i] && 
+                l1pT[i] > 1.5 && l2pT[i] > 0.5) out_idx.push_back(i);
     }
 
     return out_idx;
@@ -45,11 +42,11 @@ ROOT::VecOps::RVec<unsigned int> Cuts(bool isE,
 
 #return indices of triplets with  b1 < mll < b2
 Bin_code = '''
-ROOT::VecOps::RVec<unsigned int> Bin(ROOT::VecOps::RVec<unsigned int>& inp_idx,
-                                     float b1,float b2,
-                                     ROOT::VecOps::RVec<float>& mll){    
+RVec<unsigned int> Bin(RVec<unsigned int>& inp_idx,
+                       float b1,float b2,
+                       RVec<float>& mll){    
 
-    ROOT::VecOps::RVec<unsigned int> out_idx;
+    RVec<unsigned int> out_idx;
 
     for (auto i : inp_idx){
             if( mll[i] >= b1 && mll[i] < b2 )out_idx.push_back(i);
@@ -61,13 +58,13 @@ ROOT::VecOps::RVec<unsigned int> Bin(ROOT::VecOps::RVec<unsigned int>& inp_idx,
 
 #return indices of triplets with both leptons not being PFoverlap
 noPFover_code = '''
-ROOT::VecOps::RVec<unsigned int> noPFover(ROOT::VecOps::RVec<unsigned int>& inp_idx,
-                                          ROOT::VecOps::RVec<bool>& l1isPFover,
-                                          ROOT::VecOps::RVec<bool>& l2isPFover){
+RVec<unsigned int> noPFover(RVec<unsigned int>& inp_idx,
+                            RVec<bool>& l1isPFover,
+                            RVec<bool>& l2isPFover){
 
-    ROOT::VecOps::RVec<unsigned int> out_idx;
+    RVec<unsigned int> out_idx;
     for (auto i : inp_idx){
-            if( !l1isPFover[i] && !l1isPFover[i] ) out_idx.push_back(i);
+            if( !l1isPFover[i] && !l2isPFover[i] ) out_idx.push_back(i);
     }
     return out_idx;
 }
@@ -76,13 +73,13 @@ ROOT::VecOps::RVec<unsigned int> noPFover(ROOT::VecOps::RVec<unsigned int>& inp_
 
 #return indices of triplets with both leptons being PF
 bothPF_code = '''
-ROOT::VecOps::RVec<unsigned int> bothPF(ROOT::VecOps::RVec<unsigned int>& inp_idx,
-                                        ROOT::VecOps::RVec<bool>& l1isPF,
-                                        ROOT::VecOps::RVec<bool>& l2isPF){
+RVec<unsigned int> bothPF(RVec<unsigned int>& inp_idx,
+                          RVec<bool>& l1isPF,
+                          RVec<bool>& l2isPF){
 
-    ROOT::VecOps::RVec<unsigned int> out_idx;                                            
+    RVec<unsigned int> out_idx;                                            
     for (auto i : inp_idx){
-            if( l1isPF[i] && l1isPF[i] ) out_idx.push_back(i);
+            if( l1isPF[i] && l2isPF[i] ) out_idx.push_back(i);
     }
     return out_idx;
 }
@@ -91,14 +88,44 @@ ROOT::VecOps::RVec<unsigned int> bothPF(ROOT::VecOps::RVec<unsigned int>& inp_id
 
 #return indices of triplets with both leptons being lowPt
 bothLow_code = '''
-ROOT::VecOps::RVec<unsigned int> bothLow(ROOT::VecOps::RVec<unsigned int>& inp_idx,
-                                         ROOT::VecOps::RVec<bool>& l1isLow,                                         
-                                         ROOT::VecOps::RVec<bool>& l2isLow){
+RVec<unsigned int> bothLow(RVec<unsigned int>& inp_idx,
+                           RVec<bool>& l1isLow,                                         
+                           RVec<bool>& l2isLow){
 
-    ROOT::VecOps::RVec<unsigned int> out_idx;
+    RVec<unsigned int> out_idx;
     for (auto i : inp_idx){
-            if( l1isLow[i] && l1isLow[i] ) out_idx.push_back(i);
+            if( l1isLow[i] && l2isLow[i] ) out_idx.push_back(i);
     }
     return out_idx;
+}
+'''
+
+
+#return indices of mixed triplets: (l1_is_PF, l2_is_lowPt) or (l1_is_lowPt, l2_is_PF)
+mix_code = '''
+RVec<unsigned int> mix(RVec<unsigned int>& inp_idx,
+                       RVec<bool>& l1isPF,
+                       RVec<bool>& l2isPF,
+                       RVec<bool>& l1isLow,
+                       RVec<bool>& l2isLow){
+
+    RVec<unsigned int> out_idx;
+    for (auto i : inp_idx){
+            if( (l1isPF[i] && l2isLow[i]) || (l1isLow[i] && l2isPF[i]) ) out_idx.push_back(i);
+    }
+    return out_idx;
+}
+'''
+
+
+#return weights for histograms
+weights_code = '''
+RVec<float> weights(unsigned int nTr){
+    
+    RVec<float> w;
+    for (auto i=0; i<nTr; ++i){
+            w.push_back(0.999);
+    }
+    return w;
 }
 '''
