@@ -38,19 +38,22 @@ ROOT.gInterpreter.Declare(Mod.Bin_code)
 ROOT.gInterpreter.Declare(Mod.noPFover_code)
 ROOT.gInterpreter.Declare(Mod.bothPF_code)
 ROOT.gInterpreter.Declare(Mod.bothLow_code)
+ROOT.gInterpreter.Declare(Mod.mix_code)
+ROOT.gInterpreter.Declare(Mod.weights_code)
 
 
 #Electron or Muon channel
-isKEE_ch = 'true' if isEle else 'false'
-nTriplet_ch = 'nBToKEE' if isEle else 'nBToKMuMu'
-B_pT_ch = 'BToKEE_pt' if isEle else 'BToKMuMu_pt'
-cos2D_ch = 'BToKEE_cos2D' if isEle else 'BToKMuMu_cos2D'
-B_svprob_ch = 'BToKEE_svprob' if isEle else 'BToKMuMu_svprob'
-B_Lxy_ch = 'BToKEE_l_xy' if isEle else 'BToKMuMu_l_xy'
-B_Lxy_unc_ch = 'BToKEE_l_xy_unc' if isEle else 'BToKMuMu_l_xy_unc'
-K_pT_ch = 'Take(ProbeTracks_pt, BToKEE_kIdx)' if isEle else 'Take(ProbeTracks_pt, BToKMuMu_kIdx)'
-l1_pT_ch = 'Take(Electron_pt, BToKEE_l1Idx)' if isEle else 'Take(Muon_pt, BToKMuMu_l1Idx)'
-l2_pT_ch = 'Take(Electron_pt, BToKEE_l2Idx)' if isEle else 'Take(Muon_pt, BToKMuMu_l2Idx)'
+isKEE_ch = 'true' #if isEle else 'false'
+nTriplet_ch = 'nBToKEE' #if isEle else 'nBToKMuMu'
+B_pT_ch = 'BToKEE_pt' #if isEle else 'BToKMuMu_pt'
+cos2D_ch = 'BToKEE_cos2D' #if isEle else 'BToKMuMu_cos2D'
+B_svprob_ch = 'BToKEE_svprob' #if isEle else 'BToKMuMu_svprob'
+B_Lxy_ch = 'BToKEE_l_xy' #if isEle else 'BToKMuMu_l_xy'
+B_Lxy_unc_ch = 'BToKEE_l_xy_unc' #if isEle else 'BToKMuMu_l_xy_unc'
+K_DCASig_ch = 'Take(ProbeTracks_DCASig, BToKEE_kIdx)' #if isEle else 'Take(ProbeTracks_DCASig, BToKMuMu_kIdx)'
+K_pT_ch = 'Take(ProbeTracks_pt, BToKEE_kIdx)' #if isEle else 'Take(ProbeTracks_pt, BToKMuMu_kIdx)'
+l1_pT_ch = 'Take(Electron_pt, BToKEE_l1Idx)' #if isEle else 'Take(Muon_pt, BToKMuMu_l1Idx)'
+l2_pT_ch = 'Take(Electron_pt, BToKEE_l2Idx)' #if isEle else 'Take(Muon_pt, BToKMuMu_l2Idx)'
 l1_Veto_ch = 'Take(Electron_convVeto, BToKEE_l1Idx)'
 l2_Veto_ch = 'Take(Electron_convVeto, BToKEE_l2Idx)'
 l1_isPFov_ch = 'Take(Electron_isPFoverlap, BToKEE_l1Idx)'
@@ -61,10 +64,10 @@ l1_isLow_ch = 'Take(Electron_isLowPt, BToKEE_l1Idx)'
 l2_isLow_ch = 'Take(Electron_isLowPt, BToKEE_l2Idx)'
 l1_mvaId_ch = 'Take(Electron_mvaId, BToKEE_l1Idx)' 
 l2_mvaId_ch = 'Take(Electron_mvaId, BToKEE_l2Idx)' 
-mll_fit_ch = 'BToKEE_mll_fullfit' if isEle else 'BToKMuMu_mll_fullfit'
-mll_raw_ch = 'BToKEE_mll_raw' if isEle else 'BToKMuMu_mll_raw'
-B_mass_ch = 'BToKEE_mass' if isEle else 'BToKMuMu_mass'
-B_fit_mass_ch = 'BToKEE_fit_mass' if isEle else 'BToKMuMu_fit_mass'
+mll_fit_ch = 'BToKEE_mll_fullfit' #if isEle else 'BToKMuMu_mll_fullfit'
+mll_raw_ch = 'BToKEE_mll_raw' #if isEle else 'BToKMuMu_mll_raw'
+B_mass_ch = 'BToKEE_mass' #if isEle else 'BToKMuMu_mass'
+B_fit_mass_ch = 'BToKEE_fit_mass' #if isEle else 'BToKMuMu_fit_mass'
 
 
 #Define useful quantities
@@ -75,6 +78,7 @@ branch_def = df.Define("isKEE",isKEE_ch) \
                .Define("B_svprob", B_svprob_ch) \
                .Define("B_Lxy", B_Lxy_ch) \
                .Define("B_Lxy_unc", B_Lxy_unc_ch) \
+               .Define("K_DCASig", K_DCASig_ch) \
                .Define("K_pT", K_pT_ch) \
                .Define("l1_pT",l1_pT_ch) \
                .Define("l2_pT",l2_pT_ch) \
@@ -91,80 +95,113 @@ branch_def = df.Define("isKEE",isKEE_ch) \
                .Define("mll_fit",mll_fit_ch) \
                .Define("mll_raw",mll_raw_ch) \
                .Define("B_mass",B_mass_ch) \
-               .Define("B_fit_mass",B_fit_mass_ch)
+               .Define("B_fit_mass",B_fit_mass_ch) \
+               .Define("W","weights(nTriplet)")
 
 
 #Finding indices of triplets passing cuts
-ind_cuts = branch_def.Define("Idx", "Cuts( isKEE, nTriplet, B_pT, cos2D, B_svprob, B_Lxy, B_Lxy_unc, K_pT, l1_pT, l2_pT, l1_mvaId, l2_mvaId, l1_Veto, l2_Veto )")
+ind_cuts = branch_def.Define("Idx", "Cuts( nTriplet, B_pT, cos2D, B_svprob, B_Lxy, B_Lxy_unc, K_DCASig, K_pT, l1_pT, l2_pT, l1_mvaId, l2_mvaId, l1_Veto, l2_Veto )")
 
 
-#Finding indices of triplets with both leptons not being PFoverlap
-noPFov = ind_cuts.Define("Idx_noPFov", "noPFover( Idx, l1_isPFov, l2_isPFov )" )
-'''
-#Finding indices of triplets with both leptons being PF
-PF = ind_cuts.Define("Idx_PF", "bothPF( Idx, l1_isPF, l2_isPF )" )
-#Finding indices of triplets with both leptons lowPt and noPFoverlap
-noPFovLow = noPFov.Define("Idx_noPFov_Low", "bothLow( Idx_noPFov, l1_isLow, l2_isLow )" )
-'''
+#Finding indices of triplets for different configurations
+config = ind_cuts.Define("Idx_noPFov", "noPFover( Idx, l1_isPFov, l2_isPFov )" ) \
+                 .Define("Idx_PF", "bothPF( Idx, l1_isPF, l2_isPF )" ) \
+                 .Define("Idx_mix", "mix( Idx_noPFov, l1_isPF, l2_isPF, l1_isLow, l2_isLow )" ) \
+                 .Define("Idx_Low", "bothLow( Idx_noPFov, l1_isLow, l2_isLow )" )
 
 
 #Bin ranges
 #B0 = [0, 1], B1 = [1, 2.5], B2 = [2.5, 2.9], B3 = [2.9, 3.3], B4 = [3.3, 3.58], B5 = [3.58, 100]
-#Finding indices of triplets with 2.9 < mll_fullfit < 3.1 and noPFoverlap
-noPFov_B3fit = noPFov.Define("noPFov_B3f", "Bin( Idx_noPFov, 2.9, 3.3, mll_fit )" )
-'''
-#Finding indices of triplets with 2.9 < mll_raw < 3.1 and noPFoverlap
-noPFov_B3raw = noPFov.Define("noPFov_B3r", "Bin( Idx_noPFov, 2.9, 3.3, mll_raw )" )
-#Finding indices of triplets with 2.9 < mll_fullfit < 3.1 and both leptons PF
-PF_B3fit = PF.Define("PF_B3f", "Bin( Idx_PF, 2.9, 3.3, mll_fit )" )
-#Finding indices of triplets with 2.9 < mll_raw < 3.1 and both leptons PF
-PF_B3raw = PF.Define("PF_B3r", "Bin( Idx_PF, 2.9, 3.3, mll_raw )" )
-#Finding indices of triplets with 2.9 < mll_fullfit < 3.1 and both leptons lowPt and noPFoverlap
-noPFovLow_B3fit = noPFovLow.Define("noPFov_Low_B3f", "Bin( Idx_noPFov_Low, 2.9, 3.3, mll_fit )" )
-#Finding indices of triplets with 2.9 < mll_raw < 3.1 and both leptons lowPt and noPFoverlap
-noPFovLow_B3raw = noPFovLow.Define("noPFov_Low_B3r", "Bin( Idx_noPFov_Low, 2.9, 3.3, mll_raw )" )
-'''
+#Finding indices of triplets with 2.9 < mll_fullfit(_raw) < 3.1
+config_bin = config.Define("noPFov_B3f", "Bin( Idx_noPFov, 2.9, 3.3, mll_fit )" ) \
+                   .Define("noPFov_B3r", "Bin( Idx_noPFov, 2.9, 3.3, mll_raw )" ) \
+                   .Define("PF_B3f", "Bin( Idx_PF, 2.9, 3.3, mll_fit )" ) \
+                   .Define("PF_B3r", "Bin( Idx_PF, 2.9, 3.3, mll_raw )" ) \
+                   .Define("mix_B3f", "Bin( Idx_mix, 2.9, 3.3, mll_fit )" ) \
+                   .Define("mix_B3r", "Bin( Idx_mix, 2.9, 3.3, mll_raw )" ) \
+                   .Define("Low_B3f", "Bin( Idx_Low, 2.9, 3.3, mll_fit )" ) \
+                   .Define("Low_B3r", "Bin( Idx_Low, 2.9, 3.3, mll_raw )" )
 
 
-#Defining quantities with noPFoverlap and 2.9 < mll_fullfit < 3.1
-noPFov_B3fit_q = noPFov_B3fit.Define("B_mass_B3f","Take(B_mass, noPFov_B3f)") \
-                             .Define("B_fit_mass_B3f","Take(B_fit_mass, noPFov_B3f)")
-'''
-#Defining quantities with noPFoverlap and 2.9 < mll_raw < 3.1
-noPFov_B3raw_q = noPFov_B3raw.Define("B_mass_B3r","Take(B_mass, noPFov_B3r)") \
-                             .Define("B_fit_mass_B3r","Take(B_fit_mass, noPFov_B3r)")
-#Defining quantities with both leptons PF and 2.9 < mll_fullfit < 3.1
-PF_B3fit_q = PF_B3fit.Define("B_mass_PF_B3f","Take(B_mass, PF_B3f)") \
-                     .Define("B_fit_mass_PF_B3f","Take(B_fit_mass, PF_B3f)")
-#Defining quantities with both leptons PF and 2.9 < mll_raw < 3.1
-PF_B3raw_q = PF_B3raw.Define("B_mass_PF_B3r","Take(B_mass, PF_B3r)") \
-                     .Define("B_fit_mass_PF_B3r","Take(B_fit_mass, PF_B3r)")
-#Defining quantities with both leptons lowPt and 2.9 < mll_fullfit < 3.1
-noPFovLow_B3fit_q = noPFovLow_B3fit.Define("B_mass_noPFovLow_B3f","Take(B_mass, noPFov_Low_B3f)") \
-                                   .Define("B_fit_mass_noPFovLow_B3f","Take(B_fit_mass, noPFov_Low_B3f)")
-#Defining quantities with both leptons lowPt and 2.9 < mll_raw < 3.1
-noPFovLow_B3raw_q = noPFovLow_B3raw.Define("B_mass_noPFovLow_B3r","Take(B_mass, noPFov_Low_B3r)") \
-                                   .Define("B_fit_mass_noPFovLow_B3r","Take(B_fit_mass, noPFov_Low_B3r)")
-'''
+#Defining quantities
+config_bin_q = config_bin.Define("B_mass_B3f","Take(B_mass, noPFov_B3f)") \
+                         .Define("B_fit_mass_B3f","Take(B_fit_mass, noPFov_B3f)") \
+                         .Define("W_B3f","Take(W, noPFov_B3f)") \
+                         .Define("B_mass_B3r","Take(B_mass, noPFov_B3r)") \
+                         .Define("B_fit_mass_B3r","Take(B_fit_mass, noPFov_B3r)") \
+                         .Define("W_B3r","Take(W, noPFov_B3r)") \
+                         .Define("B_mass_PF_B3f","Take(B_mass, PF_B3f)") \
+                         .Define("B_fit_mass_PF_B3f","Take(B_fit_mass, PF_B3f)") \
+                         .Define("W_PF_B3f","Take(W, PF_B3f)") \
+                         .Define("B_mass_PF_B3r","Take(B_mass, PF_B3r)") \
+                         .Define("B_fit_mass_PF_B3r","Take(B_fit_mass, PF_B3r)") \
+                         .Define("W_PF_B3r","Take(W, PF_B3r)") \
+                         .Define("B_mass_mix_B3f","Take(B_mass, mix_B3f)") \
+                         .Define("B_fit_mass_mix_B3f","Take(B_fit_mass, mix_B3f)") \
+                         .Define("W_mix_B3f","Take(W, mix_B3f)") \
+                         .Define("B_mass_mix_B3r","Take(B_mass, mix_B3r)") \
+                         .Define("B_fit_mass_mix_B3r","Take(B_fit_mass, mix_B3r)") \
+                         .Define("W_mix_B3r","Take(W, mix_B3r)") \
+                         .Define("B_mass_Low_B3f","Take(B_mass, Low_B3f)") \
+                         .Define("B_fit_mass_Low_B3f","Take(B_fit_mass, Low_B3f)") \
+                         .Define("W_Low_B3f","Take(W, Low_B3f)") \
+                         .Define("B_mass_Low_B3r","Take(B_mass, Low_B3r)") \
+                         .Define("B_fit_mass_Low_B3r","Take(B_fit_mass, Low_B3r)") \
+                         .Define("W_Low_B3r","Take(W, Low_B3r)") 
 
+
+#'''
+# SAVE HISTOGRAMS
 Mod.print_time('Before histo')
 
-h_Bmass_B3f = noPFov_B3fit_q.Histo1D(("Bmass_B3f", "Bmass_B3f", 75, 4.5, 6.0), "B_mass_B3f")
-h_BfitMass_B3f = noPFov_B3fit_q.Histo1D(("BfitMass_B3f", "BfitMass_B3f", 75, 4.5, 6.0), "B_fit_mass_B3f")
+h_Bmass_B3f = config_bin_q.Histo1D( ("Bmass_B3f", "Bmass_B3f", 75, 4.5, 6.0), "B_mass_B3f", "W_B3f")
+h_BfitMass_B3f = config_bin_q.Histo1D( ("BfitMass_B3f", "BfitMass_B3f", 75, 4.5, 6.0), "B_fit_mass_B3f", "W_B3f")
+h_Bmass_B3r = config_bin_q.Histo1D( ("Bmass_B3r", "Bmass_B3r", 75, 4.5, 6.0), "B_mass_B3r", "W_B3r")
+h_BfitMass_B3r = config_bin_q.Histo1D( ("BfitMass_B3r", "BfitMass_B3r", 75, 4.5, 6.0), "B_fit_mass_B3r", "W_B3r")
+h_Bmass_PF_B3f = config_bin_q.Histo1D( ("Bmass_PF_B3f", "Bmass_PF_B3f", 75, 4.5, 6.0), "B_mass_PF_B3f", "W_PF_B3f")
+h_BfitMass_PF_B3f = config_bin_q.Histo1D( ("BfitMass_PF_B3f", "BfitMass_PF_B3f", 75, 4.5, 6.0), "B_fit_mass_PF_B3f", "W_PF_B3f")
+h_Bmass_PF_B3r = config_bin_q.Histo1D( ("Bmass_PF_B3r", "Bmass_PF_B3r", 75, 4.5, 6.0), "B_mass_PF_B3r", "W_PF_B3r")
+h_BfitMass_PF_B3r = config_bin_q.Histo1D( ("BfitMass_PF_B3r", "BfitMass_PF_B3r", 75, 4.5, 6.0), "B_fit_mass_PF_B3r", "W_PF_B3r")
+h_Bmass_mix_B3f = config_bin_q.Histo1D( ("Bmass_mix_B3f", "Bmass_mix_B3f", 75, 4.5, 6.0), "B_mass_mix_B3f", "W_mix_B3f")
+h_BfitMass_mix_B3f = config_bin_q.Histo1D( ("BfitMass_mix_B3f", "BfitMass_mix_B3f", 75, 4.5, 6.0), "B_fit_mass_mix_B3f", "W_mix_B3f")
+h_Bmass_mix_B3r = config_bin_q.Histo1D( ("Bmass_mix_B3r", "Bmass_mix_B3r", 75, 4.5, 6.0), "B_mass_mix_B3r", "W_mix_B3r")
+h_BfitMass_mix_B3r = config_bin_q.Histo1D( ("BfitMass_mix_B3r", "BfitMass_mix_B3r", 75, 4.5, 6.0), "B_fit_mass_mix_B3r", "W_mix_B3r")
+h_Bmass_Low_B3f = config_bin_q.Histo1D( ("Bmass_Low_B3f", "Bmass_Low_B3f", 75, 4.5, 6.0), "B_mass_Low_B3f", "W_Low_B3f")
+h_BfitMass_Low_B3f = config_bin_q.Histo1D( ("BfitMass_Low_B3f", "BfitMass_Low_B3f", 75, 4.5, 6.0), "B_fit_mass_Low_B3f", "W_Low_B3f")
+h_Bmass_Low_B3r = config_bin_q.Histo1D( ("Bmass_Low_B3r", "Bmass_Low_B3r", 75, 4.5, 6.0), "B_mass_Low_B3r", "W_Low_B3r")
+h_BfitMass_Low_B3r = config_bin_q.Histo1D( ("BfitMass_Low_B3r", "BfitMass_Low_B3r", 75, 4.5, 6.0), "B_fit_mass_Low_B3r", "W_Low_B3r")
 
 outHistFile = ROOT.TFile.Open(outFileName,"RECREATE")
 outHistFile.cd()
+
 h_Bmass_B3f.Write()
 h_BfitMass_B3f.Write()
+h_Bmass_B3r.Write()
+h_BfitMass_B3r.Write()
+h_Bmass_PF_B3f.Write()
+h_BfitMass_PF_B3f.Write()
+h_Bmass_PF_B3r.Write()
+h_BfitMass_PF_B3r.Write()
+h_Bmass_mix_B3f.Write()
+h_BfitMass_mix_B3f.Write()
+h_Bmass_mix_B3r.Write()
+h_BfitMass_mix_B3r.Write()
+h_Bmass_Low_B3f.Write()
+h_BfitMass_Low_B3f.Write()
+h_Bmass_Low_B3r.Write()
+h_BfitMass_Low_B3r.Write()
+
 outHistFile.Close()
 
+
 '''
+# SAVE THE NEW BRANCHES IN newtree
 Mod.print_time('Before_snapshot')
 
 brList = ROOT.vector('string')()
-for brName in ["B_mass_B3f","B_fit_mass_B3f"]:
+for brName in ["B_mass_B3f","B_fit_mass_B3f", "B_mass_B3r", "B_fit_mass_B3r", "B_mass_PF_B3f", "B_fit_mass_PF_B3f", "B_mass_PF_B3r", "B_fit_mass_PF_B3r", "B_mass_noPFovLow_B3f", "B_fit_mass_noPFovLow_B3f", "B_mass_noPFovLow_B3r", "B_fit_mass_noPFovLow_B3r"]:
     brList.push_back(brName)
-noPFov_B3fit_q.Snapshot("newtree", outFileName, brList)
+config_bin_q.Snapshot("newtree", outFileName, brList)
 '''
 
 Mod.print_time('End')
