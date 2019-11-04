@@ -1,3 +1,5 @@
+//https://github.com/ICBPHCMS/BPHParkingAnalysis/blob/master/NtupleProducer/macro/fitBmass_fromHistos.C
+
 //plot and fit BToKEE and BToKMuMu
 
 //example to run
@@ -15,7 +17,8 @@
 #include "TKey.h"
 #include "TFile.h"
 #include "TTree.h"
-#include "TH1F.h"
+#include "TH1D.h"
+//#include "TH1F.h"
 #include "TH2F.h"
 #include "TF1.h"
 #include "TString.h"
@@ -60,15 +63,15 @@ void fitBmass_fromHistos(int isEleFinalState, std::string inFile){
     TFile* inF = TFile::Open(inFile.c_str());
 
 
-    TH1F* h_Bmass;
-    TH1F* h_Bmass_PF;
-    TH1F* h_Bmass_mix;
-    TH1F* h_Bmass_Low;
+    TH1D* h_Bmass;
+    TH1D* h_Bmass_PF;
+    TH1D* h_Bmass_mix;
+    TH1D* h_Bmass_Low;
   
-    h_Bmass = (TH1F*)inF->Get("Bmass_B3r")->Clone("h_Bmass_B3r");    
-    h_Bmass_PF = (TH1F*)inF->Get("Bmass_PF_B3r")->Clone("h_Bmass_PF_B3r");
-    h_Bmass_mix = (TH1F*)inF->Get("Bmass_mix_B3r")->Clone("h_Bmass_mix_B3r");
-    h_Bmass_Low = (TH1F*)inF->Get("Bmass_Low_B3r")->Clone("h_Bmass_Low_B3r");
+    h_Bmass = (TH1D*)inF->Get("Bmass_B3r")->Clone("h_Bmass_B3r");    
+    h_Bmass_PF = (TH1D*)inF->Get("Bmass_PF_B3r")->Clone("h_Bmass_PF_B3r");
+    h_Bmass_mix = (TH1D*)inF->Get("Bmass_mix_B3r")->Clone("h_Bmass_mix_B3r");
+    h_Bmass_Low = (TH1D*)inF->Get("Bmass_Low_B3r")->Clone("h_Bmass_Low_B3r");
 
 
     //now fitting
