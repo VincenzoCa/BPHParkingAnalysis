@@ -29,7 +29,7 @@ RVec<unsigned int> Cuts(unsigned int nTr,
 
     for (auto i=0; i<nTr; ++i){
             if( BpT[i] < 3. || cosAlpha[i] < 0.999 || svprob[i] < 0.1 ||
-                Lxy[i]/sqrt(Lxy_unc[i]) < 6.0 || K_DCASig[i] < 2. || KpT[i] < 3.) continue;
+                Lxy[i]/(Lxy_unc[i]) < 6.0 || K_DCASig[i] < 2. || KpT[i] < 3.) continue;
             if( l1mvaId[i] > 3.94 && l2mvaId[i] > 3.94 && 
                 l1Veto[i] && l2Veto[i] && 
                 l1pT[i] > 1.5 && l2pT[i] > 0.5) out_idx.push_back(i);
