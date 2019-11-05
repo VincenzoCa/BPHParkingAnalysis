@@ -150,7 +150,6 @@ config_bin_q = config_bin.Define("B_mass_B3f","Take(B_mass, noPFov_B3f)") \
                          .Define("W_Low_B3r","Take(W, Low_B3r)") 
 
 
-#'''
 # SAVE HISTOGRAMS
 Mod.print_time('Before histo')
 
@@ -193,15 +192,5 @@ h_BfitMass_Low_B3r.Write()
 
 outHistFile.Close()
 
-
-'''
-# SAVE THE NEW BRANCHES IN newtree
-Mod.print_time('Before_snapshot')
-
-brList = ROOT.vector('string')()
-for brName in ["B_mass_B3f","B_fit_mass_B3f", "B_mass_B3r", "B_fit_mass_B3r", "B_mass_PF_B3f", "B_fit_mass_PF_B3f", "B_mass_PF_B3r", "B_fit_mass_PF_B3r", "B_mass_noPFovLow_B3f", "B_fit_mass_noPFovLow_B3f", "B_mass_noPFovLow_B3r", "B_fit_mass_noPFovLow_B3r"]:
-    brList.push_back(brName)
-config_bin_q.Snapshot("newtree", outFileName, brList)
-'''
 
 Mod.print_time('End')
