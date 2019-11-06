@@ -1,11 +1,13 @@
-#source settings.sh
-#python analyzer_RDF.py --isEleCh (0,1) --inList input_list.txt --JOBid (1,2,...) --outFile /path/output.root
+# source settings.sh
+# python analyzer_RDF.py --isEleCh (0,1) --inList input_list.txt --JOBid (1,2,...) --outFile /path/output.root
+# By default, the output will be stored as histograms. Please add --tree if you want a tree as output
 
 import ROOT
 import module as Mod
 # Enable multi-threading
 ROOT.ROOT.EnableImplicitMT()
 import argparse
+import numpy as np
 
 Mod.print_time('Start')
 
@@ -14,13 +16,14 @@ parser.add_argument("--isEleCh", "-c", help="set channel")
 parser.add_argument("--inList", "-l", help="set list")
 parser.add_argument("--JOBid", "-j", help="set job ID")
 parser.add_argument("--outFile", "-f", help="set output folder")
+parser.add_argument('--tree', action='store_true')
 args = parser.parse_args()
 
 isEle = args.isEleCh
 listName = args.inList
+isTree = args.tree
 outFileName = args.outFile
-
-print('\n --isEleCh ' + isEle + ' --list ' + listName + ' --JOBid ' + args.JOBid + ' --outFile ' + outFileName)
+print('\n --isEleCh ' + isEle + ' --list ' + listName + ' --JOBid ' + args.JOBid + ' --outFile ' + outFileName + ' --tree ' + str(isTree))
     
 # Create dataframe from NanoAOD files 
 files = ROOT.std.vector("string")()
@@ -56,12 +59,12 @@ l1_pT_ch = 'Take(Electron_pt, BToKEE_l1Idx)' #if isEle else 'Take(Muon_pt, BToKM
 l2_pT_ch = 'Take(Electron_pt, BToKEE_l2Idx)' #if isEle else 'Take(Muon_pt, BToKMuMu_l2Idx)'
 l1_Veto_ch = 'Take(Electron_convVeto, BToKEE_l1Idx)'
 l2_Veto_ch = 'Take(Electron_convVeto, BToKEE_l2Idx)'
-l1_isPFov_ch = 'Take(Electron_isPFoverlap, BToKEE_l1Idx)'
-l2_isPFov_ch = 'Take(Electron_isPFoverlap, BToKEE_l2Idx)'
-l1_isPF_ch = 'Take(Electron_isPF, BToKEE_l1Idx)'
-l2_isPF_ch = 'Take(Electron_isPF, BToKEE_l2Idx)'
-l1_isLow_ch = 'Take(Electron_isLowPt, BToKEE_l1Idx)'
-l2_isLow_ch = 'Take(Electron_isLowPt, BToKEE_l2Idx)'
+l1_isPFov_ch = '(ROOT::VecOps::RVec<unsigned int>) Take(Electron_isPFoverlap, BToKEE_l1Idx)'
+l2_isPFov_ch = '(ROOT::VecOps::RVec<unsigned int>) Take(Electron_isPFoverlap, BToKEE_l2Idx)'
+l1_isPF_ch = '(ROOT::VecOps::RVec<unsigned int>) Take(Electron_isPF, BToKEE_l1Idx)'
+l2_isPF_ch = '(ROOT::VecOps::RVec<unsigned int>) Take(Electron_isPF, BToKEE_l2Idx)'
+l1_isLow_ch = '(ROOT::VecOps::RVec<unsigned int>) Take(Electron_isLowPt, BToKEE_l1Idx)'
+l2_isLow_ch = '(ROOT::VecOps::RVec<unsigned int>) Take(Electron_isLowPt, BToKEE_l2Idx)'
 l1_mvaId_ch = 'Take(Electron_mvaId, BToKEE_l1Idx)' 
 l2_mvaId_ch = 'Take(Electron_mvaId, BToKEE_l2Idx)' 
 mll_fit_ch = 'BToKEE_mll_fullfit' #if isEle else 'BToKMuMu_mll_fullfit'
@@ -70,7 +73,7 @@ B_mass_ch = 'BToKEE_mass' #if isEle else 'BToKMuMu_mass'
 B_fit_mass_ch = 'BToKEE_fit_mass' #if isEle else 'BToKMuMu_fit_mass'
 
 
-#Define useful quantities
+# Defining useful quantities
 branch_def = df.Define("isKEE",isKEE_ch) \
                .Define("nTriplet",nTriplet_ch) \
                .Define("B_pT", B_pT_ch) \
@@ -99,98 +102,127 @@ branch_def = df.Define("isKEE",isKEE_ch) \
                .Define("W","weights(nTriplet)")
 
 
-#Finding indices of triplets passing cuts
+# Finding indices of triplets passing cuts
 ind_cuts = branch_def.Define("Idx", "Cuts( nTriplet, B_pT, cos2D, B_svprob, B_Lxy, B_Lxy_unc, K_DCASig, K_pT, l1_pT, l2_pT, l1_mvaId, l2_mvaId, l1_Veto, l2_Veto )")
 
 
-#Finding indices of triplets for different configurations
-config = ind_cuts.Define("Idx_noPFov", "noPFover( Idx, l1_isPFov, l2_isPFov )" ) \
-                 .Define("Idx_PF", "bothPF( Idx, l1_isPF, l2_isPF )" ) \
-                 .Define("Idx_mix", "mix( Idx_noPFov, l1_isPF, l2_isPF, l1_isLow, l2_isLow )" ) \
-                 .Define("Idx_Low", "bothLow( Idx_noPFov, l1_isLow, l2_isLow )" )
+if  np.logical_not(isTree):
 
 
-#Bin ranges
-#B0 = [0, 1], B1 = [1, 2.5], B2 = [2.5, 2.9], B3 = [2.9, 3.3], B4 = [3.3, 3.58], B5 = [3.58, 100]
-#Finding indices of triplets with 2.9 < mll_fullfit(_raw) < 3.1
-config_bin = config.Define("noPFov_B3f", "Bin( Idx_noPFov, 2.9, 3.3, mll_fit )" ) \
-                   .Define("noPFov_B3r", "Bin( Idx_noPFov, 2.9, 3.3, mll_raw )" ) \
-                   .Define("PF_B3f", "Bin( Idx_PF, 2.9, 3.3, mll_fit )" ) \
-                   .Define("PF_B3r", "Bin( Idx_PF, 2.9, 3.3, mll_raw )" ) \
-                   .Define("mix_B3f", "Bin( Idx_mix, 2.9, 3.3, mll_fit )" ) \
-                   .Define("mix_B3r", "Bin( Idx_mix, 2.9, 3.3, mll_raw )" ) \
-                   .Define("Low_B3f", "Bin( Idx_Low, 2.9, 3.3, mll_fit )" ) \
-                   .Define("Low_B3r", "Bin( Idx_Low, 2.9, 3.3, mll_raw )" )
+    # Finding indices of triplets for different configurations
+    config = ind_cuts.Define("Idx_noPFov", "noPFover( Idx, l1_isPFov, l2_isPFov )" ) \
+                     .Define("Idx_PF", "bothPF( Idx, l1_isPF, l2_isPF )" ) \
+                     .Define("Idx_mix", "mix( Idx_noPFov, l1_isPF, l2_isPF, l1_isLow, l2_isLow )" ) \
+                     .Define("Idx_Low", "bothLow( Idx_noPFov, l1_isLow, l2_isLow )" )
 
 
-#Defining quantities
-config_bin_q = config_bin.Define("B_mass_B3f","Take(B_mass, noPFov_B3f)") \
-                         .Define("B_fit_mass_B3f","Take(B_fit_mass, noPFov_B3f)") \
-                         .Define("W_B3f","Take(W, noPFov_B3f)") \
-                         .Define("B_mass_B3r","Take(B_mass, noPFov_B3r)") \
-                         .Define("B_fit_mass_B3r","Take(B_fit_mass, noPFov_B3r)") \
-                         .Define("W_B3r","Take(W, noPFov_B3r)") \
-                         .Define("B_mass_PF_B3f","Take(B_mass, PF_B3f)") \
-                         .Define("B_fit_mass_PF_B3f","Take(B_fit_mass, PF_B3f)") \
-                         .Define("W_PF_B3f","Take(W, PF_B3f)") \
-                         .Define("B_mass_PF_B3r","Take(B_mass, PF_B3r)") \
-                         .Define("B_fit_mass_PF_B3r","Take(B_fit_mass, PF_B3r)") \
-                         .Define("W_PF_B3r","Take(W, PF_B3r)") \
-                         .Define("B_mass_mix_B3f","Take(B_mass, mix_B3f)") \
-                         .Define("B_fit_mass_mix_B3f","Take(B_fit_mass, mix_B3f)") \
-                         .Define("W_mix_B3f","Take(W, mix_B3f)") \
-                         .Define("B_mass_mix_B3r","Take(B_mass, mix_B3r)") \
-                         .Define("B_fit_mass_mix_B3r","Take(B_fit_mass, mix_B3r)") \
-                         .Define("W_mix_B3r","Take(W, mix_B3r)") \
-                         .Define("B_mass_Low_B3f","Take(B_mass, Low_B3f)") \
-                         .Define("B_fit_mass_Low_B3f","Take(B_fit_mass, Low_B3f)") \
-                         .Define("W_Low_B3f","Take(W, Low_B3f)") \
-                         .Define("B_mass_Low_B3r","Take(B_mass, Low_B3r)") \
-                         .Define("B_fit_mass_Low_B3r","Take(B_fit_mass, Low_B3r)") \
-                         .Define("W_Low_B3r","Take(W, Low_B3r)") 
+    # Bin ranges
+    # B0 = [0, 1], B1 = [1, 2.5], B2 = [2.5, 2.9], B3 = [2.9, 3.3], B4 = [3.3, 3.58], B5 = [3.58, 100]
+    # Finding indices of triplets with 2.9 < mll_fullfit(_raw) < 3.1
+    config_bin = config.Define("noPFov_B3f", "Bin( Idx_noPFov, 2.9, 3.3, mll_fit )" ) \
+                       .Define("noPFov_B3r", "Bin( Idx_noPFov, 2.9, 3.3, mll_raw )" ) \
+                       .Define("PF_B3f", "Bin( Idx_PF, 2.9, 3.3, mll_fit )" ) \
+                       .Define("PF_B3r", "Bin( Idx_PF, 2.9, 3.3, mll_raw )" ) \
+                       .Define("mix_B3f", "Bin( Idx_mix, 2.9, 3.3, mll_fit )" ) \
+                       .Define("mix_B3r", "Bin( Idx_mix, 2.9, 3.3, mll_raw )" ) \
+                       .Define("Low_B3f", "Bin( Idx_Low, 2.9, 3.3, mll_fit )" ) \
+                       .Define("Low_B3r", "Bin( Idx_Low, 2.9, 3.3, mll_raw )" )
 
 
-# SAVE HISTOGRAMS
-Mod.print_time('Before histo')
+    # Defining quantities
+    config_bin_q = config_bin.Define("B_mass_B3f","Take(B_mass, noPFov_B3f)") \
+                             .Define("B_fit_mass_B3f","Take(B_fit_mass, noPFov_B3f)") \
+                             .Define("W_B3f","Take(W, noPFov_B3f)") \
+                             .Define("B_mass_B3r","Take(B_mass, noPFov_B3r)") \
+                             .Define("B_fit_mass_B3r","Take(B_fit_mass, noPFov_B3r)") \
+                             .Define("W_B3r","Take(W, noPFov_B3r)") \
+                             .Define("B_mass_PF_B3f","Take(B_mass, PF_B3f)") \
+                             .Define("B_fit_mass_PF_B3f","Take(B_fit_mass, PF_B3f)") \
+                             .Define("W_PF_B3f","Take(W, PF_B3f)") \
+                             .Define("B_mass_PF_B3r","Take(B_mass, PF_B3r)") \
+                             .Define("B_fit_mass_PF_B3r","Take(B_fit_mass, PF_B3r)") \
+                             .Define("W_PF_B3r","Take(W, PF_B3r)") \
+                             .Define("B_mass_mix_B3f","Take(B_mass, mix_B3f)") \
+                             .Define("B_fit_mass_mix_B3f","Take(B_fit_mass, mix_B3f)") \
+                             .Define("W_mix_B3f","Take(W, mix_B3f)") \
+                             .Define("B_mass_mix_B3r","Take(B_mass, mix_B3r)") \
+                             .Define("B_fit_mass_mix_B3r","Take(B_fit_mass, mix_B3r)") \
+                             .Define("W_mix_B3r","Take(W, mix_B3r)") \
+                             .Define("B_mass_Low_B3f","Take(B_mass, Low_B3f)") \
+                             .Define("B_fit_mass_Low_B3f","Take(B_fit_mass, Low_B3f)") \
+                             .Define("W_Low_B3f","Take(W, Low_B3f)") \
+                             .Define("B_mass_Low_B3r","Take(B_mass, Low_B3r)") \
+                             .Define("B_fit_mass_Low_B3r","Take(B_fit_mass, Low_B3r)") \
+                             .Define("W_Low_B3r","Take(W, Low_B3r)") 
 
-h_Bmass_B3f = config_bin_q.Histo1D( ("Bmass_B3f", "Bmass_B3f", 75, 4.5, 6.0), "B_mass_B3f", "W_B3f")
-h_BfitMass_B3f = config_bin_q.Histo1D( ("BfitMass_B3f", "BfitMass_B3f", 75, 4.5, 6.0), "B_fit_mass_B3f", "W_B3f")
-h_Bmass_B3r = config_bin_q.Histo1D( ("Bmass_B3r", "Bmass_B3r", 75, 4.5, 6.0), "B_mass_B3r", "W_B3r")
-h_BfitMass_B3r = config_bin_q.Histo1D( ("BfitMass_B3r", "BfitMass_B3r", 75, 4.5, 6.0), "B_fit_mass_B3r", "W_B3r")
-h_Bmass_PF_B3f = config_bin_q.Histo1D( ("Bmass_PF_B3f", "Bmass_PF_B3f", 75, 4.5, 6.0), "B_mass_PF_B3f", "W_PF_B3f")
-h_BfitMass_PF_B3f = config_bin_q.Histo1D( ("BfitMass_PF_B3f", "BfitMass_PF_B3f", 75, 4.5, 6.0), "B_fit_mass_PF_B3f", "W_PF_B3f")
-h_Bmass_PF_B3r = config_bin_q.Histo1D( ("Bmass_PF_B3r", "Bmass_PF_B3r", 75, 4.5, 6.0), "B_mass_PF_B3r", "W_PF_B3r")
-h_BfitMass_PF_B3r = config_bin_q.Histo1D( ("BfitMass_PF_B3r", "BfitMass_PF_B3r", 75, 4.5, 6.0), "B_fit_mass_PF_B3r", "W_PF_B3r")
-h_Bmass_mix_B3f = config_bin_q.Histo1D( ("Bmass_mix_B3f", "Bmass_mix_B3f", 75, 4.5, 6.0), "B_mass_mix_B3f", "W_mix_B3f")
-h_BfitMass_mix_B3f = config_bin_q.Histo1D( ("BfitMass_mix_B3f", "BfitMass_mix_B3f", 75, 4.5, 6.0), "B_fit_mass_mix_B3f", "W_mix_B3f")
-h_Bmass_mix_B3r = config_bin_q.Histo1D( ("Bmass_mix_B3r", "Bmass_mix_B3r", 75, 4.5, 6.0), "B_mass_mix_B3r", "W_mix_B3r")
-h_BfitMass_mix_B3r = config_bin_q.Histo1D( ("BfitMass_mix_B3r", "BfitMass_mix_B3r", 75, 4.5, 6.0), "B_fit_mass_mix_B3r", "W_mix_B3r")
-h_Bmass_Low_B3f = config_bin_q.Histo1D( ("Bmass_Low_B3f", "Bmass_Low_B3f", 75, 4.5, 6.0), "B_mass_Low_B3f", "W_Low_B3f")
-h_BfitMass_Low_B3f = config_bin_q.Histo1D( ("BfitMass_Low_B3f", "BfitMass_Low_B3f", 75, 4.5, 6.0), "B_fit_mass_Low_B3f", "W_Low_B3f")
-h_Bmass_Low_B3r = config_bin_q.Histo1D( ("Bmass_Low_B3r", "Bmass_Low_B3r", 75, 4.5, 6.0), "B_mass_Low_B3r", "W_Low_B3r")
-h_BfitMass_Low_B3r = config_bin_q.Histo1D( ("BfitMass_Low_B3r", "BfitMass_Low_B3r", 75, 4.5, 6.0), "B_fit_mass_Low_B3r", "W_Low_B3r")
 
-outHistFile = ROOT.TFile.Open(outFileName,"RECREATE")
-outHistFile.cd()
+    # Save histograms
+    Mod.print_time('Before histo')
 
-h_Bmass_B3f.Write()
-h_BfitMass_B3f.Write()
-h_Bmass_B3r.Write()
-h_BfitMass_B3r.Write()
-h_Bmass_PF_B3f.Write()
-h_BfitMass_PF_B3f.Write()
-h_Bmass_PF_B3r.Write()
-h_BfitMass_PF_B3r.Write()
-h_Bmass_mix_B3f.Write()
-h_BfitMass_mix_B3f.Write()
-h_Bmass_mix_B3r.Write()
-h_BfitMass_mix_B3r.Write()
-h_Bmass_Low_B3f.Write()
-h_BfitMass_Low_B3f.Write()
-h_Bmass_Low_B3r.Write()
-h_BfitMass_Low_B3r.Write()
+    h_Bmass_B3f = config_bin_q.Histo1D( ("Bmass_B3f", "Bmass_B3f", 75, 4.5, 6.0), "B_mass_B3f", "W_B3f")
+    h_BfitMass_B3f = config_bin_q.Histo1D( ("BfitMass_B3f", "BfitMass_B3f", 75, 4.5, 6.0), "B_fit_mass_B3f", "W_B3f")
+    h_Bmass_B3r = config_bin_q.Histo1D( ("Bmass_B3r", "Bmass_B3r", 75, 4.5, 6.0), "B_mass_B3r", "W_B3r")
+    h_BfitMass_B3r = config_bin_q.Histo1D( ("BfitMass_B3r", "BfitMass_B3r", 75, 4.5, 6.0), "B_fit_mass_B3r", "W_B3r")
+    h_Bmass_PF_B3f = config_bin_q.Histo1D( ("Bmass_PF_B3f", "Bmass_PF_B3f", 75, 4.5, 6.0), "B_mass_PF_B3f", "W_PF_B3f")
+    h_BfitMass_PF_B3f = config_bin_q.Histo1D( ("BfitMass_PF_B3f", "BfitMass_PF_B3f", 75, 4.5, 6.0), "B_fit_mass_PF_B3f", "W_PF_B3f")
+    h_Bmass_PF_B3r = config_bin_q.Histo1D( ("Bmass_PF_B3r", "Bmass_PF_B3r", 75, 4.5, 6.0), "B_mass_PF_B3r", "W_PF_B3r")
+    h_BfitMass_PF_B3r = config_bin_q.Histo1D( ("BfitMass_PF_B3r", "BfitMass_PF_B3r", 75, 4.5, 6.0), "B_fit_mass_PF_B3r", "W_PF_B3r")
+    h_Bmass_mix_B3f = config_bin_q.Histo1D( ("Bmass_mix_B3f", "Bmass_mix_B3f", 75, 4.5, 6.0), "B_mass_mix_B3f", "W_mix_B3f")
+    h_BfitMass_mix_B3f = config_bin_q.Histo1D( ("BfitMass_mix_B3f", "BfitMass_mix_B3f", 75, 4.5, 6.0), "B_fit_mass_mix_B3f", "W_mix_B3f")
+    h_Bmass_mix_B3r = config_bin_q.Histo1D( ("Bmass_mix_B3r", "Bmass_mix_B3r", 75, 4.5, 6.0), "B_mass_mix_B3r", "W_mix_B3r")
+    h_BfitMass_mix_B3r = config_bin_q.Histo1D( ("BfitMass_mix_B3r", "BfitMass_mix_B3r", 75, 4.5, 6.0), "B_fit_mass_mix_B3r", "W_mix_B3r")
+    h_Bmass_Low_B3f = config_bin_q.Histo1D( ("Bmass_Low_B3f", "Bmass_Low_B3f", 75, 4.5, 6.0), "B_mass_Low_B3f", "W_Low_B3f")
+    h_BfitMass_Low_B3f = config_bin_q.Histo1D( ("BfitMass_Low_B3f", "BfitMass_Low_B3f", 75, 4.5, 6.0), "B_fit_mass_Low_B3f", "W_Low_B3f")
+    h_Bmass_Low_B3r = config_bin_q.Histo1D( ("Bmass_Low_B3r", "Bmass_Low_B3r", 75, 4.5, 6.0), "B_mass_Low_B3r", "W_Low_B3r")
+    h_BfitMass_Low_B3r = config_bin_q.Histo1D( ("BfitMass_Low_B3r", "BfitMass_Low_B3r", 75, 4.5, 6.0), "B_fit_mass_Low_B3r", "W_Low_B3r")
 
-outHistFile.Close()
+    outHistFile = ROOT.TFile.Open(outFileName,"RECREATE")
+    outHistFile.cd()
+
+    h_Bmass_B3f.Write()
+    h_BfitMass_B3f.Write()
+    h_Bmass_B3r.Write()
+    h_BfitMass_B3r.Write()
+    h_Bmass_PF_B3f.Write()
+    h_BfitMass_PF_B3f.Write()
+    h_Bmass_PF_B3r.Write()
+    h_BfitMass_PF_B3r.Write()
+    h_Bmass_mix_B3f.Write()
+    h_BfitMass_mix_B3f.Write()
+    h_Bmass_mix_B3r.Write()
+    h_BfitMass_mix_B3r.Write()
+    h_Bmass_Low_B3f.Write()
+    h_BfitMass_Low_B3f.Write()
+    h_Bmass_Low_B3r.Write()
+    h_BfitMass_Low_B3r.Write()
+
+    outHistFile.Close()
+
+
+else:
+
+
+    # Skimmed quantities
+    tree_q = ind_cuts.Define("l1_isPF_cut","Take(l1_isPF, Idx)") \
+                     .Define("l2_isPF_cut","Take(l2_isPF, Idx)") \
+                     .Define("l1_isPFov_cut","Take(l1_isPFov, Idx)") \
+                     .Define("l2_isPFov_cut","Take(l2_isPFov, Idx)") \
+                     .Define("l1_isLow_cut","Take(l1_isLow, Idx)") \
+                     .Define("l2_isLow_cut","Take(l2_isLow, Idx)") \
+                     .Define("mll_fullfit_cut","Take(mll_fit, Idx)") \
+                     .Define("mll_raw_cut","Take(mll_raw, Idx)") \
+                     .Define("B_mass_cut","Take(B_mass, Idx)") \
+                     .Define("B_fit_mass_cut","Take(B_fit_mass, Idx)")
+    
+
+    # Save skimmed branches in skimTree
+    Mod.print_time('Before_snapshot')
+
+    brList = ROOT.vector('string')()
+    for brName in ["Idx", "l1_isPF_cut", "l2_isPF_cut", "l1_isPFov_cut", "l2_isPFov_cut", "l1_isLow_cut", 
+                   "l2_isLow_cut", "mll_fullfit_cut", "mll_raw_cut", "B_mass_cut", "B_fit_mass_cut"]:
+        brList.push_back(brName)
+    tree_q.Snapshot("skimTree", outFileName, brList)
 
 
 Mod.print_time('End')
