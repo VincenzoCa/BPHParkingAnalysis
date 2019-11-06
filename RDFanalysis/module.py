@@ -59,12 +59,12 @@ RVec<unsigned int> Bin(RVec<unsigned int>& inp_idx,
 #return indices of triplets with both leptons not being PFoverlap
 noPFover_code = '''
 RVec<unsigned int> noPFover(RVec<unsigned int>& inp_idx,
-                            RVec<bool>& l1isPFover,
-                            RVec<bool>& l2isPFover){
+                            RVec<unsigned int>& l1isPFover,
+                            RVec<unsigned int>& l2isPFover){
 
     RVec<unsigned int> out_idx;
     for (auto i : inp_idx){
-            if( !l1isPFover[i] && !l2isPFover[i] ) out_idx.push_back(i);
+            if( l1isPFover[i] == 0 && l2isPFover[i] == 0 ) out_idx.push_back(i);
     }
     return out_idx;
 }
@@ -74,12 +74,12 @@ RVec<unsigned int> noPFover(RVec<unsigned int>& inp_idx,
 #return indices of triplets with both leptons being PF
 bothPF_code = '''
 RVec<unsigned int> bothPF(RVec<unsigned int>& inp_idx,
-                          RVec<bool>& l1isPF,
-                          RVec<bool>& l2isPF){
+                          RVec<unsigned int>& l1isPF,
+                          RVec<unsigned int>& l2isPF){
 
     RVec<unsigned int> out_idx;                                            
     for (auto i : inp_idx){
-            if( l1isPF[i] && l2isPF[i] ) out_idx.push_back(i);
+            if( l1isPF[i] == 1 && l2isPF[i] == 1 ) out_idx.push_back(i);
     }
     return out_idx;
 }
@@ -89,12 +89,12 @@ RVec<unsigned int> bothPF(RVec<unsigned int>& inp_idx,
 #return indices of triplets with both leptons being lowPt
 bothLow_code = '''
 RVec<unsigned int> bothLow(RVec<unsigned int>& inp_idx,
-                           RVec<bool>& l1isLow,                                         
-                           RVec<bool>& l2isLow){
+                           RVec<unsigned int>& l1isLow,                                         
+                           RVec<unsigned int>& l2isLow){
 
     RVec<unsigned int> out_idx;
     for (auto i : inp_idx){
-            if( l1isLow[i] && l2isLow[i] ) out_idx.push_back(i);
+            if( l1isLow[i] == 1 && l2isLow[i] == 1 ) out_idx.push_back(i);
     }
     return out_idx;
 }
@@ -104,14 +104,14 @@ RVec<unsigned int> bothLow(RVec<unsigned int>& inp_idx,
 #return indices of mixed triplets: (l1_is_PF, l2_is_lowPt) or (l1_is_lowPt, l2_is_PF)
 mix_code = '''
 RVec<unsigned int> mix(RVec<unsigned int>& inp_idx,
-                       RVec<bool>& l1isPF,
-                       RVec<bool>& l2isPF,
-                       RVec<bool>& l1isLow,
-                       RVec<bool>& l2isLow){
+                       RVec<unsigned int>& l1isPF,
+                       RVec<unsigned int>& l2isPF,
+                       RVec<unsigned int>& l1isLow,
+                       RVec<unsigned int>& l2isLow){
 
     RVec<unsigned int> out_idx;
     for (auto i : inp_idx){
-            if( (l1isPF[i] && l2isLow[i]) || (l1isLow[i] && l2isPF[i]) ) out_idx.push_back(i);
+            if( (l1isPF[i] == 1 && l2isLow[i] ==1) || (l1isLow[i] ==1 && l2isPF[i] == 1) ) out_idx.push_back(i);
     }
     return out_idx;
 }
