@@ -68,10 +68,10 @@ void fitBmass_fromHistos(int isEleFinalState, std::string inFile){
     TH1D* h_Bmass_mix;
     TH1D* h_Bmass_Low;
   
-    h_Bmass = (TH1D*)inF->Get("Bmass_B3r")->Clone("h_Bmass_B3r");    
-    h_Bmass_PF = (TH1D*)inF->Get("Bmass_PF_B3r")->Clone("h_Bmass_PF_B3r");
-    h_Bmass_mix = (TH1D*)inF->Get("Bmass_mix_B3r")->Clone("h_Bmass_mix_B3r");
-    h_Bmass_Low = (TH1D*)inF->Get("Bmass_Low_B3r")->Clone("h_Bmass_Low_B3r");
+    h_Bmass = (TH1D*)inF->Get("KEE_mass_B3r")->Clone("h_KEE_mass_B3r");    
+    h_Bmass_PF = (TH1D*)inF->Get("KEE_mass_PF_B3r")->Clone("h_KEE_mass_PF_B3r");
+    h_Bmass_mix = (TH1D*)inF->Get("KEE_mass_mix_B3r")->Clone("h_KEE_mass_mix_B3r");
+    h_Bmass_Low = (TH1D*)inF->Get("KEE_mass_Low_B3r")->Clone("h_KEE_mass_Low_B3r");
 
 
     //now fitting
