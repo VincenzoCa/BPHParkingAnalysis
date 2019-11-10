@@ -94,12 +94,6 @@ int main(int argc, char **argv){
     std::cout << " ntupleList = " << ntupleList << " JOBid = " << JOBid << " outputFolder = " << outputFolder << std::endl;
 
 
-    gROOT->Reset();
-    gROOT->Macro("./setStyle.C");
-    gSystem->Load("libRooFit") ;
-    gStyle->SetOptStat(0);
-    gStyle->SetOptFit(0);
-
     TChain* ch = new TChain("skimTree");
   
     if(ntupleList != "-1"){
@@ -108,126 +102,160 @@ int main(int argc, char **argv){
         inFileLong.open(ntupleList.c_str(), std::ios::in);
         while(!inFileLong.eof()){
             if(inFileLong >> rootFileName){
-                ch->Add(rootFileName.c_str());
+                ch -> Add(rootFileName.c_str());
                 std::cout << " adding " << rootFileName << std::endl;
             }
         }
     }
     else{
-        ch->Add(testFile.c_str());
+        ch -> Add(testFile.c_str());
     }    
     
-    
-    TCut PFov = "l1_isPFov_cut == 0 && l2_isPFov_cut == 0";
-    TCut PF = "l1_isPF_cut == 1 && l2_isPF_cut == 1";
-    TCut mix = "((l1_isPF_cut == 1 && l2_isLow_cut == 1) || (l1_isLow_cut == 1 && l2_isPF_cut == 1))"; 
-    TCut Low = "l1_isLow_cut == 1 && l2_isLow_cut == 1";  
-    TCut mllraw = "mll_raw_cut > 2.9 && mll_raw_cut < 3.3";
-    TCut mllff = "mll_fullfit_cut > 2.9 && mll_fullfit_cut < 3.3";
   
-  
-    TH1F *Bmass_B3f = new TH1F("Bmass_B3f","", 75, 4.5, 6.);
-    Bmass_B3f->Sumw2();
-    Bmass_B3f->SetLineColor(kRed);
-    Bmass_B3f->SetLineWidth(2);    
-    
-    TH1F *BfitMass_B3f = new TH1F("BfitMass_B3f","", 75, 4.5, 6.);
-    BfitMass_B3f->Sumw2();  
-    BfitMass_B3f->SetLineColor(kRed);
-    BfitMass_B3f->SetLineWidth(2);       
-    
-    TH1F *Bmass_B3r = new TH1F("Bmass_B3r","", 75, 4.5, 6.);
-    Bmass_B3r->Sumw2();
-    Bmass_B3r->SetLineColor(kRed);
-    Bmass_B3r->SetLineWidth(2);       
-    
-    TH1F *BfitMass_B3r = new TH1F("BfitMass_B3r","", 75, 4.5, 6.);
-    BfitMass_B3r->Sumw2(); 
-    BfitMass_B3r->SetLineColor(kRed);
-    BfitMass_B3r->SetLineWidth(2);       
-    
-    TH1F *Bmass_PF_B3f = new TH1F("Bmass_PF_B3f","", 75, 4.5, 6.);
-    Bmass_PF_B3f->Sumw2();
-    Bmass_PF_B3f->SetLineColor(kRed);
-    Bmass_PF_B3f->SetLineWidth(2);       
-    
-    TH1F *BfitMass_PF_B3f = new TH1F("BfitMass_PF_B3f","", 75, 4.5, 6.);
-    BfitMass_PF_B3f->Sumw2();  
-    BfitMass_PF_B3f->SetLineColor(kRed);
-    BfitMass_PF_B3f->SetLineWidth(2);       
-    
-    TH1F *Bmass_PF_B3r = new TH1F("Bmass_PF_B3r","", 75, 4.5, 6.);
-    Bmass_PF_B3r->Sumw2();
-    Bmass_PF_B3r->SetLineColor(kRed);
-    Bmass_PF_B3r->SetLineWidth(2);       
-    
-    TH1F *BfitMass_PF_B3r = new TH1F("BfitMass_PF_B3r","", 75, 4.5, 6.);
-    BfitMass_PF_B3r->Sumw2();
-    BfitMass_PF_B3r->SetLineColor(kRed);
-    BfitMass_PF_B3r->SetLineWidth(2);       
-    
-    TH1F *Bmass_mix_B3f = new TH1F("Bmass_mix_B3f","", 75, 4.5, 6.);
-    Bmass_mix_B3f->Sumw2();
-    Bmass_mix_B3f->SetLineColor(kRed);
-    Bmass_mix_B3f->SetLineWidth(2);       
-    
-    TH1F *BfitMass_mix_B3f = new TH1F("BfitMass_mix_B3f","", 75, 4.5, 6.);
-    BfitMass_mix_B3f->Sumw2();  
-    BfitMass_mix_B3f->SetLineColor(kRed);
-    BfitMass_mix_B3f->SetLineWidth(2);       
-    
-    TH1F *Bmass_mix_B3r = new TH1F("Bmass_mix_B3r","", 75, 4.5, 6.);
-    Bmass_mix_B3r->Sumw2();
-    Bmass_mix_B3r->SetLineColor(kRed);
-    Bmass_mix_B3r->SetLineWidth(2);       
-    
-    TH1F *BfitMass_mix_B3r = new TH1F("BfitMass_mix_B3r","", 75, 4.5, 6.);
-    BfitMass_mix_B3r->Sumw2();
-    BfitMass_mix_B3r->SetLineColor(kRed);
-    BfitMass_mix_B3r->SetLineWidth(2);       
-    
-    TH1F *Bmass_Low_B3f = new TH1F("Bmass_Low_B3f","", 75, 4.5, 6.);
-    Bmass_Low_B3f->Sumw2();
-    Bmass_Low_B3f->SetLineColor(kRed);
-    Bmass_Low_B3f->SetLineWidth(2);   
-    
-    TH1F *BfitMass_Low_B3f = new TH1F("BfitMass_Low_B3f","", 75, 4.5, 6.);
-    BfitMass_Low_B3f->Sumw2();
-    BfitMass_Low_B3f->SetLineColor(kRed);
-    BfitMass_Low_B3f->SetLineWidth(2);       
-    
-    TH1F *Bmass_Low_B3r = new TH1F("Bmass_Low_B3r","", 75, 4.5, 6.);
-    Bmass_Low_B3r->Sumw2();
-    Bmass_Low_B3r->SetLineColor(kRed);
-    Bmass_Low_B3r->SetLineWidth(2);       
-    
-    TH1F *BfitMass_Low_B3r = new TH1F("BfitMass_Low_B3r","", 75, 4.5, 6.);
-    BfitMass_Low_B3r->Sumw2();
-    BfitMass_Low_B3r->SetLineColor(kRed);
-    BfitMass_Low_B3r->SetLineWidth(2);       
-   
-
-    ch->Draw("B_mass_cut>>Bmass_B3f", PFov && mllff,"goff");
-    ch->Draw("B_fit_mass_cut>>BfitMass_B3f", PFov && mllff,"goff");
-    ch->Draw("B_mass_cut>>Bmass_B3r", PFov && mllraw,"goff");
-    ch->Draw("B_fit_mass_cut>>BfitMass_B3r", PFov && mllraw,"goff");
-    //    
-    ch->Draw("B_mass_cut>>Bmass_PF_B3f", PF && mllff,"goff");
-    ch->Draw("B_fit_mass_cut>>BfitMass_PF_B3f", PF && mllff,"goff");
-    ch->Draw("B_mass_cut>>Bmass_PF_B3r", PF && mllraw,"goff");
-    ch->Draw("B_fit_mass_cut>>BfitMass_PF_B3r", PF && mllraw,"goff");
-    //    
-    ch->Draw("B_mass_cut>>Bmass_mix_B3f", PFov && mix && mllff,"goff");
-    ch->Draw("B_fit_mass_cut>>BfitMass_mix_B3f", PFov && mix && mllff,"goff");
-    ch->Draw("B_mass_cut>>Bmass_mix_B3r", PFov && mix && mllraw,"goff");
-    ch->Draw("B_fit_mass_cut>>BfitMass_mix_B3r", PFov && mix && mllraw,"goff");  
+    //KEE
+    TH1F *KEE_mass_B3f = new TH1F("KEE_mass_B3f","", 75, 4.5, 6.);
+    KEE_mass_B3f -> Sumw2();
+    KEE_mass_B3f -> SetLineColor(kRed);
+    KEE_mass_B3f -> SetLineWidth(1);    
     //
-    ch->Draw("B_mass_cut>>Bmass_Low_B3f", PFov && Low && mllff,"goff");
-    ch->Draw("B_fit_mass_cut>>BfitMass_Low_B3f", PFov && Low && mllff,"goff");
-    ch->Draw("B_mass_cut>>Bmass_Low_B3r", PFov && Low && mllraw,"goff");
-    ch->Draw("B_fit_mass_cut>>BfitMass_Low_B3r", PFov && Low && mllraw,"goff");  
+    TH1F *KEE_fitMass_B3f = new TH1F("KEE_fitMass_B3f","", 75, 4.5, 6.);
+    KEE_fitMass_B3f -> Sumw2();  
+    KEE_fitMass_B3f -> SetLineColor(kRed);
+    KEE_fitMass_B3f -> SetLineWidth(1);       
+    //
+    TH1F *KEE_mass_B3r = new TH1F("KEE_mass_B3r","", 75, 4.5, 6.);
+    KEE_mass_B3r -> Sumw2();
+    KEE_mass_B3r -> SetLineColor(kRed);
+    KEE_mass_B3r -> SetLineWidth(1);       
+    //
+    TH1F *KEE_fitMass_B3r = new TH1F("KEE_fitMass_B3r","", 75, 4.5, 6.);
+    KEE_fitMass_B3r -> Sumw2(); 
+    KEE_fitMass_B3r -> SetLineColor(kRed);
+    KEE_fitMass_B3r -> SetLineWidth(1);       
+    //
+    TH1F *KEE_mass_PF_B3f = new TH1F("KEE_mass_PF_B3f","", 75, 4.5, 6.);
+    KEE_mass_PF_B3f -> Sumw2();
+    KEE_mass_PF_B3f -> SetLineColor(kRed);
+    KEE_mass_PF_B3f -> SetLineWidth(1);       
+    //
+    TH1F *KEE_fitMass_PF_B3f = new TH1F("KEE_fitMass_PF_B3f","", 75, 4.5, 6.);
+    KEE_fitMass_PF_B3f -> Sumw2();  
+    KEE_fitMass_PF_B3f -> SetLineColor(kRed);
+    KEE_fitMass_PF_B3f -> SetLineWidth(1);       
+    //
+    TH1F *KEE_mass_PF_B3r = new TH1F("KEE_mass_PF_B3r","", 75, 4.5, 6.);
+    KEE_mass_PF_B3r -> Sumw2();
+    KEE_mass_PF_B3r -> SetLineColor(kRed);
+    KEE_mass_PF_B3r -> SetLineWidth(1);       
+    //
+    TH1F *KEE_fitMass_PF_B3r = new TH1F("KEE_fitMass_PF_B3r","", 75, 4.5, 6.);
+    KEE_fitMass_PF_B3r -> Sumw2();
+    KEE_fitMass_PF_B3r -> SetLineColor(kRed);
+    KEE_fitMass_PF_B3r -> SetLineWidth(1);       
+    //
+    TH1F *KEE_mass_mix_B3f = new TH1F("KEE_mass_mix_B3f","", 75, 4.5, 6.);
+    KEE_mass_mix_B3f -> Sumw2();
+    KEE_mass_mix_B3f -> SetLineColor(kRed);
+    KEE_mass_mix_B3f -> SetLineWidth(1);       
+    //
+    TH1F *KEE_fitMass_mix_B3f = new TH1F("KEE_fitMass_mix_B3f","", 75, 4.5, 6.);
+    KEE_fitMass_mix_B3f -> Sumw2();  
+    KEE_fitMass_mix_B3f -> SetLineColor(kRed);
+    KEE_fitMass_mix_B3f -> SetLineWidth(1);       
+    //
+    TH1F *KEE_mass_mix_B3r = new TH1F("KEE_mass_mix_B3r","", 75, 4.5, 6.);
+    KEE_mass_mix_B3r -> Sumw2();
+    KEE_mass_mix_B3r -> SetLineColor(kRed);
+    KEE_mass_mix_B3r -> SetLineWidth(1);       
+    //
+    TH1F *KEE_fitMass_mix_B3r = new TH1F("KEE_fitMass_mix_B3r","", 75, 4.5, 6.);
+    KEE_fitMass_mix_B3r -> Sumw2();
+    KEE_fitMass_mix_B3r -> SetLineColor(kRed);
+    KEE_fitMass_mix_B3r -> SetLineWidth(1);       
+    //
+    TH1F *KEE_mass_Low_B3f = new TH1F("KEE_mass_Low_B3f","", 75, 4.5, 6.);
+    KEE_mass_Low_B3f -> Sumw2();
+    KEE_mass_Low_B3f -> SetLineColor(kRed);
+    KEE_mass_Low_B3f -> SetLineWidth(1);   
+    //
+    TH1F *KEE_fitMass_Low_B3f = new TH1F("KEE_fitMass_Low_B3f","", 75, 4.5, 6.);
+    KEE_fitMass_Low_B3f -> Sumw2();
+    KEE_fitMass_Low_B3f -> SetLineColor(kRed);
+    KEE_fitMass_Low_B3f -> SetLineWidth(1);       
+    //
+    TH1F *KEE_mass_Low_B3r = new TH1F("KEE_mass_Low_B3r","", 75, 4.5, 6.);
+    KEE_mass_Low_B3r -> Sumw2();
+    KEE_mass_Low_B3r -> SetLineColor(kRed);
+    KEE_mass_Low_B3r -> SetLineWidth(1);       
+    //
+    TH1F *KEE_fitMass_Low_B3r = new TH1F("KEE_fitMass_Low_B3r","", 75, 4.5, 6.);
+    KEE_fitMass_Low_B3r -> Sumw2();
+    KEE_fitMass_Low_B3r -> SetLineColor(kRed);
+    KEE_fitMass_Low_B3r -> SetLineWidth(1);
     
+    //KMuMu
+    TH1F *KMM_mass_PF_B3f = new TH1F("KMM_mass_PF_B3f","", 75, 4.5, 6.);
+    KMM_mass_PF_B3f -> Sumw2();
+    KMM_mass_PF_B3f -> SetLineColor(kRed);
+    KMM_mass_PF_B3f -> SetLineWidth(1);       
+    //
+    TH1F *KMM_fitMass_PF_B3f = new TH1F("KMM_fitMass_PF_B3f","", 75, 4.5, 6.);
+    KMM_fitMass_PF_B3f -> Sumw2();  
+    KMM_fitMass_PF_B3f -> SetLineColor(kRed);
+    KMM_fitMass_PF_B3f -> SetLineWidth(1);       
+    //
+    TH1F *KMM_mass_PF_B3r = new TH1F("KMM_mass_PF_B3r","", 75, 4.5, 6.);
+    KMM_mass_PF_B3r -> Sumw2();
+    KMM_mass_PF_B3r -> SetLineColor(kRed);
+    KMM_mass_PF_B3r -> SetLineWidth(1);       
+    //
+    TH1F *KMM_fitMass_PF_B3r = new TH1F("KMM_fitMass_PF_B3r","", 75, 4.5, 6.);
+    KMM_fitMass_PF_B3r -> Sumw2();
+    KMM_fitMass_PF_B3r -> SetLineColor(kRed);
+    KMM_fitMass_PF_B3r -> SetLineWidth(1);    
 
+    
+    //KEE
+    TCut e_PFov = "e1_isPFov_sk == 0 && e2_isPFov_sk == 0";
+    TCut e_PF = "e1_isPF_sk == 1 && e2_isPF_sk == 1";
+    TCut e_mix = "((e1_isPF_sk == 1 && e2_isLow_sk == 1) || (e1_isLow_sk == 1 && e2_isPF_sk == 1))"; 
+    TCut e_Low = "e1_isLow_sk == 1 && e2_isLow_sk == 1";  
+    TCut e_mllraw = "KEE_mll_raw_sk > 2.9 && KEE_mll_raw_sk < 3.3";
+    TCut e_mllff = "KEE_mll_fullfit_sk > 2.9 && KEE_mll_fullfit_sk < 3.3";
+    //KMuMu
+    TCut mu_PF = "mu1_isPF_sk == 1 && mu2_isPF_sk == 1";
+    TCut mu_mllraw = "KMM_mll_raw_sk > 2.9 && KMM_mll_raw_sk < 3.3";
+    TCut mu_mllff = "KMM_mll_fullfit_sk > 2.9 && KMM_mll_fullfit_sk < 3.3";    
+
+    
+    //KEE    
+    ch -> Draw("KEE_mass_sk >> KEE_mass_B3f", e_PFov && e_mllff,"goff");
+    ch -> Draw("KEE_fit_mass_sk >> KEE_fitMass_B3f", e_PFov && e_mllff,"goff");
+    ch -> Draw("KEE_mass_sk >> KEE_mass_B3r", e_PFov && e_mllraw,"goff");
+    ch -> Draw("KEE_fit_mass_sk >> KEE_fitMass_B3r", e_PFov && e_mllraw,"goff");
+    //    
+    ch -> Draw("KEE_mass_sk >> KEE_mass_PF_B3f", e_PF && e_mllff,"goff");
+    ch -> Draw("KEE_fit_mass_sk >> KEE_fitMass_PF_B3f", e_PF && e_mllff,"goff");
+    ch -> Draw("KEE_mass_sk >> KEE_mass_PF_B3r", e_PF && e_mllraw,"goff");
+    ch -> Draw("KEE_fit_mass_sk >> KEE_fitMass_PF_B3r", e_PF && e_mllraw,"goff");
+    //    
+    ch -> Draw("KEE_mass_sk >> KEE_mass_mix_B3f", e_PFov && e_mix && e_mllff,"goff");
+    ch -> Draw("KEE_fit_mass_sk >> KEE_fitMass_mix_B3f", e_PFov && e_mix && e_mllff,"goff");
+    ch -> Draw("KEE_mass_sk >> KEE_mass_mix_B3r", e_PFov && e_mix && e_mllraw,"goff");
+    ch -> Draw("KEE_fit_mass_sk >> KEE_fitMass_mix_B3r", e_PFov && e_mix && e_mllraw,"goff");  
+    //
+    ch -> Draw("KEE_mass_sk >> KEE_mass_Low_B3f", e_PFov && e_Low && e_mllff,"goff");
+    ch -> Draw("KEE_fit_mass_sk >> KEE_fitMass_Low_B3f", e_PFov && e_Low && e_mllff,"goff");
+    ch -> Draw("KEE_mass_sk >> KEE_mass_Low_B3r", e_PFov && e_Low && e_mllraw,"goff");
+    ch -> Draw("KEE_fit_mass_sk >> KEE_fitMass_Low_B3r", e_PFov && e_Low && e_mllraw,"goff");  
+    
+    //KMuMu
+    ch -> Draw("KMM_mass_sk >> KMM_mass_PF_B3f", mu_PF && mu_mllff,"goff");
+    ch -> Draw("KMM_fit_mass_sk >> KMM_fitMass_PF_B3f", mu_PF && mu_mllff,"goff");
+    ch -> Draw("KMM_mass_sk >> KMM_mass_PF_B3r", mu_PF && mu_mllraw,"goff");
+    ch -> Draw("KMM_fit_mass_sk >> KMM_fitMass_PF_B3r", mu_PF && mu_mllraw,"goff");    
+
+    
     std::string outName = "histo_output_from_tree";
     if(JOBid != "-1") outName = outputFolder;
     else outName += ".root";
@@ -235,25 +263,32 @@ int main(int argc, char **argv){
     
     outHistos.cd();
   
-    Bmass_B3f->Write();
-    BfitMass_B3f->Write();  
-    Bmass_B3r->Write();
-    BfitMass_B3r->Write();
+    //KEE
+    KEE_mass_B3f -> Write();
+    KEE_fitMass_B3f -> Write();  
+    KEE_mass_B3r -> Write();
+    KEE_fitMass_B3r -> Write();
     //
-    Bmass_PF_B3f->Write();
-    BfitMass_PF_B3f->Write();  
-    Bmass_PF_B3r->Write();
-    BfitMass_PF_B3r->Write();
+    KEE_mass_PF_B3f -> Write();
+    KEE_fitMass_PF_B3f -> Write();  
+    KEE_mass_PF_B3r -> Write();
+    KEE_fitMass_PF_B3r -> Write();
     //
-    Bmass_mix_B3f->Write();
-    BfitMass_mix_B3f->Write();  
-    Bmass_mix_B3r->Write();
-    BfitMass_mix_B3r->Write();  
+    KEE_mass_mix_B3f -> Write();
+    KEE_fitMass_mix_B3f -> Write();  
+    KEE_mass_mix_B3r -> Write();
+    KEE_fitMass_mix_B3r -> Write();  
     //
-    Bmass_Low_B3f->Write();
-    BfitMass_Low_B3f->Write();  
-    Bmass_Low_B3r->Write();
-    BfitMass_Low_B3r->Write();  
+    KEE_mass_Low_B3f -> Write();
+    KEE_fitMass_Low_B3f -> Write();  
+    KEE_mass_Low_B3r -> Write();
+    KEE_fitMass_Low_B3r -> Write();
+    
+    //KMuMu
+    KMM_mass_PF_B3f -> Write();
+    KMM_fitMass_PF_B3f -> Write();  
+    KMM_mass_PF_B3r -> Write();
+    KMM_fitMass_PF_B3r -> Write();    
     
     outHistos.Close();
 } 
