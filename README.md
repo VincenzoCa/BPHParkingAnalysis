@@ -8,7 +8,7 @@ source settings.sh
 
 python analyzer_RDF.py --inList INPUT_LIST.txt --JOBid 0 --outFile /PATH/TO/STORAGE/FOLDER/output.root
 ```
-where `INPUT_LIST.txt` is the txt file containing the paths of nanoAOD files to be analyzed.
+where `INPUT_LIST.txt` is the txt file containing the paths of the nanoAOD files to be analyzed.
 By default, the output will be stored as histograms. Please add `--tree` if you want a (skimmed) tree as output.
 
 The output consists of both KEE and KMuMu quantities.
@@ -20,8 +20,7 @@ python cmsSplit.py --anType scriptAndJOBID --cfg config_runAnalysis.sh --tag YOU
 
 source launch_YOUR_TAG.sh
 ```
-`config_runAnalysis.sh` contains the command to run the analyzer. 
-The output will be stored under the path `/PATH/TO/STORAGE/FOLDER/YOUR_TAG`.
+The output will be stored under the path `/PATH/TO/STORAGE/FOLDER/YOUR_TAG`. `config_runAnalysis.sh` contains the command to run the analyzer (add `--tree` to produce skimmed nanoAOD files). 
 
 To produce histograms using the skimmed nanoAOD files, set `--cfg config_histoProducer.sh` after doing
 ```
