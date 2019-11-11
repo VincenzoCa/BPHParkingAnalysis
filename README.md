@@ -1,7 +1,15 @@
 # BPHParkingAnalysis
 A repository for analyzing the nanoAOD output of the [BParkingNANO framework](https://github.com/CMSBParking/BParkingNANO) with [RDataFrame](https://root.cern/doc/master/classROOT_1_1RDataFrame.html).
 
-# Run the analyzer
+## Getting started
+Recipe for setting up the analysis
+```
+cmsrel CMSSW_10_2_15
+cd CMSSW_10_2_15/src
+git clone https://github.com/VincenzoCa/BPHParkingAnalysis.git
+```
+
+## Run the analyzer
 To run the analyzer, inside the folder `RDFanalysis`, do
 ```
 source settings.sh
@@ -13,7 +21,7 @@ By default, the output will be stored as histograms. Please add `--tree` if you 
 
 The output consists of both KEE and KMuMu quantities.
 
-# Launch batch jobs
+## Launch batch jobs
 To launch batch jobs, inside the folder `scripts`, do
 ```
 python cmsSplit.py --anType scriptAndJOBID --cfg config_runAnalysis.sh --tag YOUR_TAG --listquery -i INPUT_LIST.txt --filesperjob (2, 10,...) --storeArea /PATH/TO/STORAGE/FOLDER
