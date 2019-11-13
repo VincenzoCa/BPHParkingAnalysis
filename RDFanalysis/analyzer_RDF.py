@@ -76,10 +76,10 @@ branch_def = df.Define("K_DCASig", "Take(ProbeTracks_DCASig, BToKEE_kIdx)") \
 
 
 # Finding indices of triplets passing cuts for KEE and KMuMu
-ind_cuts = branch_def.Define("Idx_KEE_tmp", "Cuts( nBToKEE, BToKEE_pt, BToKEE_cos2D, BToKEE_svprob, LxySig, K_DCASig, K_pT )") \
-                     .Define("Idx_KEE", "EleCuts( Idx_KEE_tmp, e1_pT, e2_pT, e1_mvaId, e2_mvaId, e1_Veto, e2_Veto )") \
-                     .Define("Idx_KMM_tmp", "Cuts( nBToKMuMu, BToKMuMu_pt, BToKMuMu_cos2D, BToKMuMu_svprob, LxySig_mu, K_DCASig_mu, K_pT_mu )") \
-                     .Define("Idx_KMM", "MuCuts( Idx_KMM_tmp, mu1_pT, mu2_pT, nAddTrMu )")
+ind_cuts = branch_def.Define("tmp_Idx_KEE", "Cuts( nBToKEE, BToKEE_pt, BToKEE_cos2D, BToKEE_svprob, LxySig, K_DCASig, K_pT )") \
+                     .Define("Idx_KEE", "EleCuts( tmp_Idx_KEE, e1_pT, e2_pT, e1_mvaId, e2_mvaId, e1_Veto, e2_Veto )") \
+                     .Define("tmp_Idx_KMM", "Cuts( nBToKMuMu, BToKMuMu_pt, BToKMuMu_cos2D, BToKMuMu_svprob, LxySig_mu, K_DCASig_mu, K_pT_mu )") \
+                     .Define("Idx_KMM", "MuCuts( tmp_Idx_KMM, mu1_pT, mu2_pT, nAddTrMu )")
 
 
 if  np.logical_not(isTree):
@@ -214,17 +214,10 @@ else:
                      .Define("KMM_mass_sk","Take(BToKMuMu_mass, Idx_KMM)") \
                      .Define("KMM_fit_mass_sk","Take(BToKMuMu_fit_mass, Idx_KMM)")
     
-
-    # Save skimmed branches in skimTree
     Mod.print_time('Before_snapshot')
-
-    brList = ROOT.vector('string')()
-    for brName in ["Idx_KEE", "e1_isPF_sk", "e2_isPF_sk", "e1_isPFov_sk", "e2_isPFov_sk", "e1_isLow_sk", 
-                   "e2_isLow_sk", "KEE_mll_fullfit_sk", "KEE_mll_raw_sk", "KEE_mass_sk", "KEE_fit_mass_sk",
-                   "Idx_KMM", "mu1_isPF_sk", "mu2_isPF_sk", "KMM_mll_fullfit_sk", "KMM_mll_raw_sk",
-                   "KMM_mass_sk", "KMM_fit_mass_sk"]:
-        brList.push_back(brName)
-    tree_q.Snapshot("skimTree", outFileName, brList)
+    
+    # Save skimmed branches in skimTree
+    tree_q.Snapshot("skimTree", outFileName, "\\b([^ ]*)(_sk)|^(Idx_)([^ ]*)")
 
 
 Mod.print_time('End')
