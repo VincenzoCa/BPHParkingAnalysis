@@ -203,10 +203,10 @@ int main(int argc, char **argv){
 
 
     // Finding indices of triplets passing cuts for KEE and KMuMu
-    auto ind_cuts = branch_def.Define("Idx_KEE_tmp", Cuts, { "nBToKEE", "BToKEE_pt", "BToKEE_cos2D", "BToKEE_svprob", "LxySig", "K_DCASig", "K_pT" } )
-                              .Define("Idx_KEE", EleCuts, { "Idx_KEE_tmp", "e1_pT", "e2_pT", "e1_mvaId", "e2_mvaId", "e1_Veto", "e2_Veto" } )
-                              .Define("Idx_KMM_tmp", Cuts, { "nBToKMuMu", "BToKMuMu_pt", "BToKMuMu_cos2D", "BToKMuMu_svprob", "LxySig_mu", "K_DCASig_mu", "K_pT_mu" } )
-                              .Define("Idx_KMM", MuCuts, { "Idx_KMM_tmp", "mu1_pT", "mu2_pT", "nAddTrMu" } );
+    auto ind_cuts = branch_def.Define("tmp_Idx_KEE", Cuts, { "nBToKEE", "BToKEE_pt", "BToKEE_cos2D", "BToKEE_svprob", "LxySig", "K_DCASig", "K_pT" } )
+                              .Define("Idx_KEE", EleCuts, { "tmp_Idx_KEE", "e1_pT", "e2_pT", "e1_mvaId", "e2_mvaId", "e1_Veto", "e2_Veto" } )
+                              .Define("tmp_Idx_KMM", Cuts, { "nBToKMuMu", "BToKMuMu_pt", "BToKMuMu_cos2D", "BToKMuMu_svprob", "LxySig_mu", "K_DCASig_mu", "K_pT_mu" } )
+                              .Define("Idx_KMM", MuCuts, { "tmp_Idx_KMM", "mu1_pT", "mu2_pT", "nAddTrMu" } );
     
 
     if(!isSkTree){
@@ -341,7 +341,7 @@ int main(int argc, char **argv){
 	                    .Define("KMM_mass_sk","Take(BToKMuMu_mass, Idx_KMM)")
 	                    .Define("KMM_fit_mass_sk","Take(BToKMuMu_fit_mass, Idx_KMM)");
 
-      tree_q.Snapshot("skimTree", outName, "\\b([^ ]*)(_sk)"); 
+      tree_q.Snapshot("skimTree", outName, "\\b([^ ]*)(_sk)|^(Idx_)([^ ]*)"); 
     }
 
     time_t finish = time(NULL);
