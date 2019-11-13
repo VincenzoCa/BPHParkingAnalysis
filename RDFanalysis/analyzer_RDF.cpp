@@ -341,7 +341,7 @@ int main(int argc, char **argv){
 	                    .Define("KMM_mass_sk","Take(BToKMuMu_mass, Idx_KMM)")
 	                    .Define("KMM_fit_mass_sk","Take(BToKMuMu_fit_mass, Idx_KMM)");
 
-      tree_q.Snapshot("skimTree", outName, "\\b([^ ]*)(_sk)"); 
+      tree_q.Snapshot("skimTree", outName, "\\b([^ ]*)(_sk)|(Idx_)([^ ]*)"); 
     }
 
     time_t finish = time(NULL);
