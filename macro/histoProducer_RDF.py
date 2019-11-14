@@ -1,10 +1,14 @@
+# A Python script to produce histograms from skimmed nanoAOD files
+# The output consists of both KEE and KMuMu histograms
+#
 # source settings.sh
 # python histoProducer_RDF.py --inList skimNano_list.txt --JOBid (1,2,...) --outFile /path/output.root
-#
-# The output consists of both KEE and KMuMu quantities
 
 import ROOT
-import Hmodule as Mod
+import Hmodule as Hmod
+import sys
+sys.path.insert(1, '../RDFanalysis')
+import module as Mod
 # Enable multi-threading
 ROOT.ROOT.EnableImplicitMT()
 import argparse
@@ -32,9 +36,9 @@ entries = df.Count()
 print('\n {} entries '.format(entries.GetValue()))
 
 
-ROOT.gInterpreter.Declare(Mod.noPFover_code)
-ROOT.gInterpreter.Declare(Mod.bothPF_code)
-ROOT.gInterpreter.Declare(Mod.bothLow_code)
+ROOT.gInterpreter.Declare(Hmod.noPFover_code)
+ROOT.gInterpreter.Declare(Hmod.bothPF_code)
+ROOT.gInterpreter.Declare(Mod.bothX_code)
 ROOT.gInterpreter.Declare(Mod.mix_code)
 ROOT.gInterpreter.Declare(Mod.Bin_code)
 
@@ -43,7 +47,7 @@ ROOT.gInterpreter.Declare(Mod.Bin_code)
 config = df.Define("Idx_noPFov", "noPFover( Idx_KEE, e1_isPFov_sk, e2_isPFov_sk )" ) \
            .Define("Idx_PF", "bothPF( Idx_KEE, e1_isPF_sk, e2_isPF_sk )" ) \
            .Define("Idx_mix", "mix( Idx_noPFov, e1_isPF_sk, e2_isPF_sk, e1_isLow_sk, e2_isLow_sk )" ) \
-           .Define("Idx_Low", "bothLow( Idx_noPFov, e1_isLow_sk, e2_isLow_sk )" ) \
+           .Define("Idx_Low", "bothX( Idx_noPFov, e1_isLow_sk, e2_isLow_sk )" ) \
            .Define("Idx_PF_mu", "bothPF( Idx_KMM, mu1_isPF_sk, mu2_isPF_sk )" ) \
            .Define("W", "RVec<float>((int)Idx_KEE.size(), 0.999)" ) \
            .Define("W_mu", "RVec<float>((int)Idx_KMM.size(), 0.999)" )
