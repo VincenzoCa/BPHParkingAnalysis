@@ -1,6 +1,9 @@
 /*
+A macro to produce histograms from skimmed nanoAOD files
+The output consists of both KEE and KMuMu histograms
+
 g++ -Wall -o histoProducer `root-config --cflags --glibs` -lRooFitCore histoProducer.cpp
-./histoProducer --ntupleList (list.txt) --JOBid (1,2..) --outputFolder ("outfolder") --testFile ("path")
+./histoProducer --ntupleList skimNano_list.txt --JOBid (1,2...) --outputFolder /path/to/output.root --testFile /path/to/input.root
 */
 
 #include <iostream>
