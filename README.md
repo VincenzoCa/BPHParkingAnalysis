@@ -22,7 +22,7 @@ By default, the output will be stored as histograms. Please add `--tree` if you 
 The output consists of both KEE and KMuMu quantities.
 
 ## Launch batch jobs
-To launch batch jobs with analyzer_RDF.py, inside the folder `scripts`, do
+To launch batch jobs with `analyzer_RDF.py`, inside the folder `scripts`, do
 ```
 python cmsSplit.py --anType scriptAndJOBID --cfg config_runAnalysis.sh --tag YOUR_TAG --listquery -i INPUT_LIST.txt --filesperjob (2, 10,...) --storeArea /PATH/TO/STORAGE/FOLDER
 
@@ -30,5 +30,4 @@ source launch_YOUR_TAG.sh
 ```
 The output will be stored under the path `/PATH/TO/STORAGE/FOLDER/YOUR_TAG`. `config_runAnalysis.sh` contains the command to run the analyzer (add `--tree` to produce skimmed nanoAOD files). 
 
-To produce histograms from the skimmed nanoAOD files, set `--cfg config_histoProducer_RDF.sh`. 
-In this case `INPUT_LIST.txt` will be the txt file containing the paths of the skimmed nanoAOD files.
+If you want to launch batch jobs with `histoProducer_RDF.py`, to produce histograms from the skimmed nanoAOD files, set `--cfg config_histoProducer_RDF.sh` instead. In this case `INPUT_LIST.txt` will be the txt file containing the paths of the skimmed nanoAOD files.
