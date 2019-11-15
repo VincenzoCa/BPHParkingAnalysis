@@ -21,6 +21,18 @@ By default, the output will be stored as histograms. Please add `--tree` if you 
 
 The output consists of both KEE and KMuMu quantities.
 
+There is also a `C++` version of the analyzer, `analyzer_RDF.cpp`. To run `analyzer_RDF.cpp`, inside the folder `RDFanalysis`, do
+```
+source settings.sh
+
+g++ -Wall -o analyzer_RDF `root-config --cflags --glibs ` analyzer_RDF.cpp
+```
+before doing
+```
+./analyzer_RDF --inList INPUT_LIST.txt --JOBid 0 --outFile /PATH/TO/STORAGE/FOLDER/output.root
+```
+Please add `--skTree 1` if you want a skimmed tree as output.
+
 ## Launch batch jobs
 To launch batch jobs with `analyzer_RDF.py`, inside the folder `scripts`, do
 ```
@@ -28,6 +40,6 @@ python cmsSplit.py --anType scriptAndJOBID --cfg config_runAnalysis.sh --tag YOU
 
 source launch_YOUR_TAG.sh
 ```
-The output will be stored under the path `/PATH/TO/STORAGE/FOLDER/YOUR_TAG`. `config_runAnalysis.sh` contains the command to run the analyzer (add `--tree` to produce skimmed nanoAOD files). 
+The output will be stored under the path `/PATH/TO/STORAGE/FOLDER/YOUR_TAG`. `config_runAnalysis.sh` contains the command to run the analyzer (add `--tree` to produce skimmed nanoAOD files). Set `--cfg config_runAnalysis_cpp.sh` if you want to launch jobs with `analyzer_RDF.cpp` (add `--skTree 1` to produce skimmed trees).
 
-If you want to launch batch jobs with `histoProducer_RDF.py`, to produce histograms from the skimmed nanoAOD files, set `--cfg config_histoProducer_RDF.sh` instead. In this case `INPUT_LIST.txt` will be the txt file containing the paths of the skimmed nanoAOD files.
+If you want to launch batch jobs with `macro/histoProducer_RDF.py`, to produce histograms from the skimmed nanoAOD files, set `--cfg config_histoProducer_RDF.sh` instead. In this case `INPUT_LIST.txt` will be the txt file containing the paths of the skimmed nanoAOD files.
