@@ -46,6 +46,8 @@
 #include "TAxis.h"
 #include "RooPlot.h"
 
+#include "TLegend.h"
+
 using namespace RooFit;
 
 
@@ -56,6 +58,10 @@ void fitBmass_fromHistos(int isEleFinalState, std::string inFile){
 
     gStyle->SetOptStat(0);
     gStyle->SetOptFit(0);
+
+    gStyle->SetPadRightMargin(1.);
+    //    pad->SetTopMargin(1.);
+    gStyle->SetPadTopMargin(1.);
 
     std::cout << " isEleFinalState = " << isEleFinalState << std::endl;
 
@@ -68,10 +74,10 @@ void fitBmass_fromHistos(int isEleFinalState, std::string inFile){
     TH1D* h_Bmass_mix;
     TH1D* h_Bmass_Low;
   
-    h_Bmass = (TH1D*)inF->Get("KEE_mass_B3r")->Clone("h_KEE_mass_B3r");    
-    h_Bmass_PF = (TH1D*)inF->Get("KEE_mass_PF_B3r")->Clone("h_KEE_mass_PF_B3r");
-    h_Bmass_mix = (TH1D*)inF->Get("KEE_mass_mix_B3r")->Clone("h_KEE_mass_mix_B3r");
-    h_Bmass_Low = (TH1D*)inF->Get("KEE_mass_Low_B3r")->Clone("h_KEE_mass_Low_B3r");
+    h_Bmass = (TH1D*)inF->Get("KEE_fitMass_B3f")->Clone("h_KEE_fitMass_B3f");    
+    h_Bmass_PF = (TH1D*)inF->Get("KEE_fitMass_PF_B3f")->Clone("h_KEE_fitMass_PF_B3f");
+    h_Bmass_mix = (TH1D*)inF->Get("KEE_fitMass_mix_B3f")->Clone("h_KEE_fitMass_mix_B3f");
+    h_Bmass_Low = (TH1D*)inF->Get("KEE_fitMass_Low_B3f")->Clone("h_KEE_fitMass_Low_B3f");
 
 
     //now fitting
@@ -124,7 +130,7 @@ void fitBmass_fromHistos(int isEleFinalState, std::string inFile){
 
     RooPlot * plot = w.var("x")->frame();
     if(isEleFinalState){
-      plot->SetXTitle("K(JPsi)ee mass (GeV)");
+      plot->SetXTitle("K^{#pm}J/#Psi(#rightarrow e^{+}e^{-}) mass [GeV]");
       //else plot->SetXTitle("Kee mass (GeV)");
     }
     else{
@@ -136,10 +142,10 @@ void fitBmass_fromHistos(int isEleFinalState, std::string inFile){
     hBMass.plotOn(plot);
     model->plotOn(plot);
     model->plotOn(plot, Components("modelb"),LineStyle(kDashed));
-    model->plotOn(plot, Components("smodel"),LineColor(kOrange));
-    hBMass_PF.plotOn(plot,LineColor(kRed),MarkerColor(kRed)) ;
-    hBMass_mix.plotOn(plot,LineColor(kGreen+1),MarkerColor(kGreen+1)) ;
-    hBMass_Low.plotOn(plot,LineColor(kMagenta),MarkerColor(kMagenta)) ;
+    model->plotOn(plot, Components("smodel"),LineColor(kRed));
+    hBMass_PF.plotOn(plot,LineColor(kGreen+1),MarkerColor(kGreen+1)) ;
+    hBMass_mix.plotOn(plot,LineColor(kMagenta),MarkerColor(kMagenta)) ;
+    hBMass_Low.plotOn(plot,LineColor(kOrange+7),MarkerColor(kOrange+7)) ;
     chi2 = plot->chiSquare();
 
     RooRealVar* parS = (RooRealVar*) r->floatParsFinal().find("nsignal");
@@ -174,19 +180,61 @@ void fitBmass_fromHistos(int isEleFinalState, std::string inFile){
     cc->SetLogy(0);
     plot->Draw();
 
+    auto Tleg = new TLegend(0.68,0.62,0.86,0.86);
+    Tleg->Draw();
+
     TLatex tL;
     tL.SetNDC();
-    tL.SetTextSize(0.05);
+    tL.SetTextSize(0.035);
     tL.SetTextFont(42);
-    tL.DrawLatex(0.65,0.9, Form("S %.1f +/- %1.f",nEv_postFit, nEvError_postFit));
+    tL.DrawLatex(0.68,0.83, Form("Sig: %.0f #pm %0.f",nEv_postFit, nEvError_postFit));//0.65,0.9
     TLatex tL2;
     tL2.SetNDC();
-    tL2.SetTextSize(0.05);
+    tL2.SetTextSize(0.035);
     tL2.SetTextFont(42);
-    tL2.DrawLatex(0.65,0.85, Form("B %.1f +/- %1.f",nBkgInt_postFit, nBkgIntError_postFit));
+    tL2.DrawLatex(0.68,0.78, Form("Bkg: %.0f #pm %0.f",nBkgInt_postFit, nBkgIntError_postFit));//0.65,0.85
 
+    TLatex tt1 = TLatex(); 
+    tt1.SetNDC();
+    tt1.SetTextSize(0.039);
+    tt1.DrawLatex(0.15, 0.92, "CMS #font[12]{Preliminary}");//0.15, 0.96
+    tt1.DrawLatex(0.645, 0.92, "Run 2018 (13 TeV)");//0.64, 0.96
 
-    if(isEleFinalState) cc->Print(Form("plots/KEE_%s.png",h_Bmass->GetName()), "png");
+    TLatex leg = TLatex();
+    leg.SetNDC();
+    leg.SetTextSize(0.035);
+    //leg.DrawLatex(0.68, 0.73, "#scale[1.2]{#color[600]{#topbar}} #font[12]{global fit}");
+    //leg.DrawLatex(0.68, 0.68, "#scale[1.2]{#color[2]{#topbar}} #font[12]{signal fit}");
+    //leg.DrawLatex(0.68, 0.63, "#scale[1.2]{#color[600]{#minus #minus #minus}} #font[12]{bkg fit}");
+    leg.DrawLatex(0.68, 0.73, "#scale[1.2]{#color[417]{#bullet}} #font[12]{both PF}");//#font[72]{}
+    leg.DrawLatex(0.68, 0.68, "#scale[1.2]{#color[616]{#bullet}} #font[12]{mix}");
+    leg.DrawLatex(0.68, 0.63, "#scale[1.2]{#color[807]{#bullet}} #font[12]{both low-pT}");
+    /*
+    TPaveText *pt = new TPaveText(.65,.75,.9,.9);
+    TColor col;
+    col.SetRGB(0., 1., 1.);
+    pt->SetFillColor(col.GetNumber());
+    pt->AddText(Form("S %.0f #pm %0.f",nEv_postFit, nEvError_postFit));
+    pt->AddText(Form("B %.0f #pm %0.f",nBkgInt_postFit, nBkgIntError_postFit));
+    pt->Draw();
+    */
+    //auto leg = new TLegend(0.67,0.65,0.9,0.9);
+    /*
+    leg->AddEntry("smodel", "Signal fit","ep");
+    leg->AddEntry(plot->findObject("modelb"), "Background fit","ep");
+    leg->AddEntry(plot->findObject("model"), "Global fit","ep");
+    leg->SetTextSize(0.022);
+    leg->Draw();
+    
+    cc->Update();
+    */
+
+    gPad->RedrawAxis();
+
+    if(isEleFinalState){
+      cc->Print(Form("2019Oct25_MC_BuToKJpsiToee/2019Oct25_MC_BuToKJpsiToee_%s.png",h_Bmass->GetName()), "png");
+      cc->Print(Form("2019Oct25_MC_BuToKJpsiToee/2019Oct25_MC_BuToKJpsiToee_%s.pdf",h_Bmass->GetName()), "pdf");
+    }
     else cc->Print(Form("plots/KMuMu_%s.png",h_Bmass->GetName()), "png");
   
     
